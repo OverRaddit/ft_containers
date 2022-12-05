@@ -8,5 +8,13 @@
 		- reverse_iterator
 			- 사실상 base iterator를 거꾸로 접근하는 인터페이스만 만들면 된다?
 			- base iterator는 std 것을 쓰면 되겠지?
+	- enable_if
+    	- SFINAE
+    	- Substition Failure Is Not An Error
+    	- 템플릿인자추론 실패시, 컴파일에러가 아닌 것으로 처리한다.
+    	- 오버로드결과물에서 해당 인스턴스화한 것을 지운다.
+    	- 원형이 이해가 안되어서 이것저것 찾아보다가 <템플릿메타함수> 개념을 알게됨.
+    	- 템플릿메타함수중에 is_integral이 있다.
+  	- is_integral
 
 - namespace ft
