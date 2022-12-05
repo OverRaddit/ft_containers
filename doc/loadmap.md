@@ -1,0 +1,12 @@
+- vector
+	- allocator?
+		- [subject]You must use std::allocator.
+	- iterator
+		- iterator_traits : 반복자가 가리키는 요소에 대한 특성이 담긴 클래스.
+		- iterator -> 아근데 구현목록이 아니네. std를 그대로 쓰자.
+		- base iterator?
+		- reverse_iterator
+			- 사실상 base iterator를 거꾸로 접근하는 인터페이스만 만들면 된다?
+			- base iterator는 std 것을 쓰면 되겠지?
+
+- namespace ft
