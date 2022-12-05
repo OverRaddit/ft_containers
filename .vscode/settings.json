@@ -1,0 +1,24 @@
+{
+	"files.associations": {
+		"vector": "cpp",
+		"chrono": "cpp",
+		"functional": "cpp",
+		"memory": "cpp",
+		"tuple": "cpp",
+		"unordered_map": "cpp",
+		"__config": "cpp",
+		"iostream": "cpp",
+		"ostream": "cpp",
+		"typeinfo": "cpp",
+		"iterator": "cpp",
+		"__bit_reference": "cpp",
+		"__hash_table": "cpp",
+		"__split_buffer": "cpp",
+		"__tree": "cpp",
+		"array": "cpp",
+		"deque": "cpp",
+		"map": "cpp",
+		"string": "cpp",
+		"string_view": "cpp"
+	}
+}
