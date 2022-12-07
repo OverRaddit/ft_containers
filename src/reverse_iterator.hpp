@@ -1,6 +1,11 @@
 #ifndef FT_REVERSE_ITERATOR
 #define FT_REVERSE_ITERATOR
 
+#include "iterator_traits.hpp"
+
+namespace ft
+{
+
 template <class Iterator>
 class reverse_iterator
 {
@@ -8,39 +13,77 @@ public:
 // ================================================================================
 // Member Types
 // ================================================================================
-typedef typename Iterator										iterator_type;
-typedef typename iterator_traits<Iterator>::iterator_category	iterator_category;
-typedef typename iterator_traits<Iterator>::value_type			value_type;
-typedef typename iterator_traits<Iterator>::difference_type		difference_type;
-typedef typename iterator_traits<Iterator>::pointer				pointer;
-typedef typename iterator_traits<Iterator>::reference			reference;
+typedef Iterator											iterator_type;
+typedef typename ft::iterator_traits<Iterator>::iterator_category	iterator_category;
+typedef typename ft::iterator_traits<Iterator>::value_type			value_type;
+typedef typename ft::iterator_traits<Iterator>::difference_type		difference_type;
+typedef typename ft::iterator_traits<Iterator>::pointer				pointer;
+typedef typename ft::iterator_traits<Iterator>::reference			reference;
+
+// Member Variable
+iterator_type iter;
 
 // ================================================================================
 // Member Functions
 // ================================================================================
 
 //constructors
-reverse_iterator();
+reverse_iterator() : iter() {};
 
-explicit reverse_iterator (iterator_type it);
+explicit reverse_iterator( iterator_type x ) : iter(x) {};
 
-template <class Iter>
-reverse_iterator(const reverse_iterator<Iter>& rev_it)
+template< class U >
+reverse_iterator( const reverse_iterator<U>& other ) : iter(other.base()) {};
+
+iterator_type base() const
 {
+	return iter;
+};
 
-}
+template <class U>
+reverse_iterator& operator=(const reverse_iterator<U>& other)
+{
+	iter = other.base();
+	return *this;
+};
 
-reference operator*() const;
-reverse_iterator operator+(difference_type n) const;
-reverse_iterator& operator++();
-reverse_iterator operator++(int);
-reverse_iterator& operator+=(difference_type n);
-reverse_iterator operator-(difference_type n) const;
-reverse_iterator& operator--();
-reverse_iterator operator--(int);
-reverse_iterator& operator-=(difference_type n);
-pointer operator->() const; // {return &(operator*())}
-reference operator[](difference_type n) const;
+reference operator*() const
+{
+	// std::cout << "*iter = " << *iter << std::endl;
+	// //std::cout << "iter = " << iter << std::endl;
+	// std::cout << "*base() = " << *base() << std::endl;
+	// reverse_iterator copy(*this);
+	// iter++;
+	// return copy;
+
+	//return (*(iter - 1));
+	iterator_type copy = iter;
+	return *--copy;
+};
+reverse_iterator operator+(difference_type n) const
+{
+	return iter - n;
+};
+reverse_iterator& operator++(){
+	--iter;
+	return *this;
+};
+reverse_iterator operator++(int) {
+	reverse_iterator copy(*this);
+	iter--;
+	return copy;
+};
+reverse_iterator& operator+=(difference_type n) { return (iter -= n); };
+reverse_iterator operator-(difference_type n) const { return iter + n; };
+reverse_iterator& operator--() { ++iter; return *this;};
+reverse_iterator operator--(int) {
+	reverse_iterator copy(*this);
+	iter++;
+	return copy;
+};
+reverse_iterator& operator-=(difference_type n) { return (iter += n); };
+pointer operator->() const { return iter; };
+reference operator[](difference_type n) const { *iter; };
 
 };
 
@@ -49,25 +92,41 @@ reference operator[](difference_type n) const;
 // ================================================================================
 // 관계연산
 template <class Iterator>  bool operator== (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
+	const reverse_iterator<Iterator>& rhs)
+{return (*lhs) == *rhs;};
 template <class Iterator>  bool operator!= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
+	const reverse_iterator<Iterator>& rhs)
+{
+	// std::cout << "NOT EQUA OPERATOR" << std::endl;
+	// std::cout << "* : " << *lhs << ", " << *rhs << std::endl;
+	// std::cout << "base() : " << *(lhs.base()) << ", " << *(rhs.base()) << std::endl;
+
+	//return *lhs != *rhs; // mine
+	return lhs.base() != rhs.base(); // stl
+};
 template <class Iterator>  bool operator< (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
+	const reverse_iterator<Iterator>& rhs)
+{return *lhs < *rhs;};
 template <class Iterator>  bool operator<= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
+	const reverse_iterator<Iterator>& rhs)
+{return *lhs <= *rhs;};
+template <class Iterator>  bool operator> (const reverse_iterator<Iterator>& lhs,
+	const reverse_iterator<Iterator>& rhs)
+{return *lhs > *rhs;};
 template <class Iterator>  bool operator>= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
-template <class Iterator>  bool operator>= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs);
+	const reverse_iterator<Iterator>& rhs)
+{return *lhs >= *rhs;};
 
 // r_iter + 1은 멤버함수로 가능 but 1 + r_iter는 불가능
 template<class Iter>
 reverse_iterator<Iter> operator+(typename reverse_iterator<Iter>::difference_type n,
-	const reverse_iterator<Iter>& rev_it);
+	const reverse_iterator<Iter>& rev_it)
+{ return rev_it.base() - n; };
 // 두 iter의 거리 계산
 template<class Iter>
 typename reverse_iterator<Iter>::difference_type operator-(const reverse_iterator<Iter>&lhs,
-	const reverse_iterator<Iter>& rhs);
+	const reverse_iterator<Iter>& rhs)
+{ return lhs - rhs; };
 
+}
 #endif

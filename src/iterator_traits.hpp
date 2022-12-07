@@ -2,6 +2,8 @@
 #define FT_ITERATOR_TRAITS
 
 # include "iterator_category.hpp"
+namespace ft
+{
 
 template<class Iter>
 class iterator_traits {
@@ -35,4 +37,5 @@ public:
 	typedef const T&					reference;
 };
 
+}
 #endif
