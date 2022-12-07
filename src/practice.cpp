@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iterator>
 #include <typeinfo>
+#include <vector>
 
 #include "ft_containers.hpp"
 

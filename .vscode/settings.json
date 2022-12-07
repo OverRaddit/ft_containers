@@ -19,6 +19,11 @@
 		"deque": "cpp",
 		"map": "cpp",
 		"string": "cpp",
-		"string_view": "cpp"
+		"string_view": "cpp",
+		"__functional_base": "cpp",
+		"__node_handle": "cpp",
+		"__memory": "cpp",
+		"memory_resource": "cpp",
+		"sstream": "cpp"
 	}
 }
