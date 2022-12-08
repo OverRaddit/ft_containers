@@ -93,29 +93,25 @@ reference operator[](difference_type n) const { *iter; };
 // 관계연산
 template <class Iterator>  bool operator== (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
-{return (*lhs) == *rhs;};
+{return lhs.base() == rhs.base();};
 template <class Iterator>  bool operator!= (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
 {
-	// std::cout << "NOT EQUA OPERATOR" << std::endl;
-	// std::cout << "* : " << *lhs << ", " << *rhs << std::endl;
-	// std::cout << "base() : " << *(lhs.base()) << ", " << *(rhs.base()) << std::endl;
-
 	//return *lhs != *rhs; // mine
 	return lhs.base() != rhs.base(); // stl
 };
 template <class Iterator>  bool operator< (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
-{return *lhs < *rhs;};
+{return lhs.base() < rhs.base();};
 template <class Iterator>  bool operator<= (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
-{return *lhs <= *rhs;};
+{return lhs.base() <= rhs.base();};
 template <class Iterator>  bool operator> (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
-{return *lhs > *rhs;};
+{return lhs.base() > rhs.base();};
 template <class Iterator>  bool operator>= (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
-{return *lhs >= *rhs;};
+{return lhs.base() >= rhs.base();};
 
 // r_iter + 1은 멤버함수로 가능 but 1 + r_iter는 불가능
 template<class Iter>
@@ -126,7 +122,7 @@ reverse_iterator<Iter> operator+(typename reverse_iterator<Iter>::difference_typ
 template<class Iter>
 typename reverse_iterator<Iter>::difference_type operator-(const reverse_iterator<Iter>&lhs,
 	const reverse_iterator<Iter>& rhs)
-{ return lhs - rhs; };
+{ return lhs.base() - rhs.base(); };
 
 }
 #endif
