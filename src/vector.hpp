@@ -4,6 +4,7 @@
 // 눈팅용
 # include <vector>
 # include "iterator_traits.hpp"
+# include "reverse_iterator.hpp"
 # include <stdexcept> // out of range
 
 namespace ft
@@ -14,29 +15,35 @@ class vector
 {
 
 // Member Type
-typedef T											value_type;
-typedef typename Alloc::value_type					allocator_type;
-typedef typename allocator_type::reference			reference;
-typedef typename allocator_type::const_reference	const_reference;
-typedef typename allocator_type::pointer			pointer;
-typedef typename allocator_type::const_pointer		const_pointer;
-//iterator 4
-// 이 4가지 이터레이터의 타입을 어떻게 명시해줘야 할지 모르겠다.
-typedef std::iterator<T>							iterator;
-typedef std::const_iterator<T>						const_iterator;
-typedef ft::reverse_iterator<iterator>				reverse_iterator;
-typedef std::const_iterator<reverse_iterator>		const_reverse_iterator;
+public:
+	typedef Alloc										allocator_type;
+	typedef typename allocator_type::size_type			size_type; // non-negative value of difference_type
 
-typedef typename ft::iterator_traits<iterator>::difference_type		difference_type;
-// ?
-// 어떻게 정의해야할지 모르겠다.
-typedef typename ft::iterator_traits<iterator>::difference_type		size_type; // non-negative value of difference_type
+	typedef T											value_type;
+	typedef typename allocator_type::reference			reference;
+	typedef typename allocator_type::const_reference	const_reference;
+	typedef typename allocator_type::pointer			pointer;
+	typedef typename allocator_type::const_pointer		const_pointer;
+	//iterator 4
+	// 이 4가지 이터레이터의 타입을 어떻게 명시해줘야 할지 모르겠다.
+	// typedef std::iterator<ft::random_access_iterator_tag, T,
+	// 	typename allocator_type::difference_type, pointer, reference>		iterator;
 
-// Member Variable
-pointer				_begin;
-pointer				_end;
-pointer				_end_cap;			// ??
-allocator_type		_alloc;
+	// iter, const_iter 타입정의 이해안됨.
+	typedef pointer													iterator;
+	typedef const_pointer											const_iterator;
+	typedef ft::reverse_iterator<iterator>							reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>					const_reverse_iterator;
+
+	typedef typename ft::iterator_traits<iterator>::difference_type		difference_type;
+	// ?
+	// 어떻게 정의해야할지 모르겠다.
+
+	// Member Variable
+	pointer				_begin;
+	pointer				_end;
+	pointer				_end_cap;			// ??
+	allocator_type		_alloc;
 
 // Member functions
 	// Constructor
@@ -121,12 +128,12 @@ allocator_type		_alloc;
 
 	reference at (size_type n) {
 		if (size() > n)
-			throw std::out_of_range;
+			throw std::out_of_range("vector");
 		return _begin[n];
 	};
 	const_reference at (size_type n) const {
 		if (size() > n)
-			throw std::out_of_range;
+			throw std::out_of_range("vector");
 		return const_cast<const_reference>(_begin[n]);
 	};
 	reference front() { return *_begin; };
