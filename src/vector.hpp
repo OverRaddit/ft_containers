@@ -21,6 +21,7 @@ class vector
 // Member Type
 public:
 	typedef Alloc										allocator_type;
+	// 어떻게 정의해야할지 모르겠다.
 	typedef typename allocator_type::size_type			size_type; // non-negative value of difference_type
 
 	typedef T											value_type;
@@ -29,10 +30,6 @@ public:
 	typedef typename allocator_type::pointer			pointer;
 	typedef typename allocator_type::const_pointer		const_pointer;
 	//iterator 4
-	// 이 4가지 이터레이터의 타입을 어떻게 명시해줘야 할지 모르겠다.
-	// typedef std::iterator<ft::random_access_iterator_tag, T,
-	// 	typename allocator_type::difference_type, pointer, reference>		iterator;
-
 	// iter, const_iter 타입정의 이해안됨.
 	typedef pointer													iterator;
 	typedef const_pointer											const_iterator;
@@ -40,13 +37,11 @@ public:
 	typedef ft::reverse_iterator<const_iterator>					const_reverse_iterator;
 
 	typedef typename ft::iterator_traits<iterator>::difference_type		difference_type;
-	// ?
-	// 어떻게 정의해야할지 모르겠다.
 
 	// Member Variable
 	pointer				_begin;
 	pointer				_end;
-	pointer				_end_cap;			// ??
+	pointer				_end_cap;
 	allocator_type		_alloc;
 
 // Member functions
@@ -57,18 +52,18 @@ public:
 				const allocator_type& alloc = allocator_type())
 		: _alloc(alloc)
 	{
-		// pointer _temp;
+		pointer _temp;
 
-		// // allocate
-		// _begin = _alloc.allocate(n); // hint??
-		// _temp = _begin;
-		// _end = _begin + n;
-		// _end_cap = _begin + n; // ?
+		// allocate
+		_begin = _alloc.allocate(n); // hint??
+		_end = _begin;
+		_end_cap = _begin + n;
 
-		// // construct
-		// for( ; _temp != _end; _temp++)
+		// construct
+		for( ; _temp != _end; _temp++)
 		// 	_alloc.construct(_temp, val);
-		append() ->   초기화값?
+
+		//append() ->   초기화값?
 	};
 	template <class InputIterator>
 		vector (InputIterator first, InputIterator last,
