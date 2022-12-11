@@ -52,18 +52,13 @@ public:
 				const allocator_type& alloc = allocator_type())
 		: _alloc(alloc)
 	{
-		pointer _temp;
-
 		// allocate
 		_begin = _alloc.allocate(n); // hint??
 		_end = _begin;
 		_end_cap = _begin + n;
 
-		// construct
-		for( ; _temp != _end; _temp++)
-		// 	_alloc.construct(_temp, val);
-
-		//append() ->   초기화값?
+		// construct with value
+		constuct_range_with_value(_begin, _end_cap, val);
 	};
 	template <class InputIterator>
 		vector (InputIterator first, InputIterator last,
@@ -204,18 +199,89 @@ public:
 
 	// Modifiers
 	template <class InputIterator>
-	void assign (InputIterator first, InputIterator last);
-	void assign (size_type n, const value_type& val);
-	void push_back (const value_type& val);
-	void pop_back();
-	iterator insert (iterator position, const value_type& val);
-	void insert (iterator position, size_type n, const value_type& val);
+	void assign (InputIterator first, InputIterator last)
+	{
+		size_type new_size = last - first;
+
+		if (capacity() >= new_size)
+		{
+			// destroy current data
+
+			// just copy
+			copy_range_with_range(_begin, _end, first, last);
+		}
+		else
+		{
+			// destroy and deallocate
+			// reallocate with value
+			vector<InputIterator::value_type> v(first, last);
+			*this = v;
+		}
+	};
+	void assign (size_type n, const value_type& val)
+	{
+		if (capacity() >= n)
+		{
+			// destroy current data
+
+			// construct with value
+		}
+		else
+		{
+			// destroy current data
+
+			// deallocate
+
+			// reallocate with value
+		}
+	};
+	void push_back (const value_type& val)
+	{
+		// if vector is FULL
+		if (_end == _end_cap)
+		{
+			// append with val
+		}
+		else
+		{
+			*_end++ = val;
+		}
+	};
+	// empty에서 호출하는건 정의되지않은 행동이다.
+	void pop_back()
+	{
+		// destroy & update _end
+		_alloc.destroy(_end--);
+	};
+	iterator insert (iterator position, const value_type& val)
+	{
+
+	};
+	void insert (iterator position, size_type n, const value_type& val)
+	{
+		// 용량 체크.
+	};
 	template <class InputIterator>
 	void insert (iterator position, InputIterator first, InputIterator last);
 	iterator erase (iterator position);
 	iterator erase (iterator first, iterator last);
-	void swap (vector& x);
-	void clear();
+	void swap (vector& x) // vector x는 *this와 같은 템플릿 인자를 공유하는 건가...?
+	{
+		vector<size_type> temp = *this;
+		*this = x;
+		x = temp;
+
+		begin
+		end
+		end_cap
+	};
+	void clear()
+	{
+		// destroy all
+		destroy_range(_begin, _end);
+		// update member
+		_end = _begin;
+	};
 	// ==========================================================================================
 
 	// Allocator
@@ -264,15 +330,21 @@ public:
 			_alloc.construct(b, srcb++);
 	};
 	// b~e구간을 val값으로 초기화한다.
-	void consturct_range_with_value(pointer b, pointer e, value_type val = value_type())
+	void constuct_range_with_value(pointer b, pointer e, value_type val = value_type())
 	{
 		for(;b != e;b++)
 			_alloc.construct(b, val);
 	};
-	void copy_range(pointer b, pointer e, bool is_init)
+	// b~e구간을 srcb~srce 구간의 값으로 복사한다.
+	void copy_range_with_range(pointer b, pointer e, pointer srcb,
+		pointer srce)
 	{
+		if (e - b != srce - srcb)
+		{
+			std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
+		}
 		for(;b != e;b++)
-			_alloc.destroy(b);
+			*b = *srcb++;
 	};
 	void destroy_range(pointer b, pointer e)
 	{
