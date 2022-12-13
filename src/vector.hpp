@@ -201,51 +201,37 @@ public:
 	template <class InputIterator>
 	void assign (InputIterator first, InputIterator last)
 	{
-		size_type new_size = last - first;
+		size_type n = last - first;
 
-		if (capacity() >= new_size)
-		{
-			// destroy current data
+		// destroy current data
+		clear();
 
-			// just copy
-			copy_range_with_range(_begin, _end, first, last);
-		}
-		else
-		{
-			// destroy and deallocate
-			// reallocate with value
-			vector<InputIterator::value_type> v(first, last);
-			*this = v;
-		}
+		// deallocate & reallocate
+		if (capacity() < n)
+			append(n);
+
+		// construct with value
+		consturct_range_with_range(_begin, _end, first, last);
 	};
 	void assign (size_type n, const value_type& val)
 	{
-		if (capacity() >= n)
-		{
-			// destroy current data
+		// destroy current data
+		clear();
 
-			// construct with value
-		}
-		else
-		{
-			// destroy current data
+		// deallocate & reallocate
+		if (capacity() < n)
+			append(n);
 
-			// deallocate
-
-			// reallocate with value
-		}
+		// construct with value
+		constuct_range_with_value(_begin, _end, val);
 	};
 	void push_back (const value_type& val)
 	{
-		// if vector is FULL
+		// if vector is FULL, append capacity * 2 with val
 		if (_end == _end_cap)
-		{
-			// append with val
-		}
-		else
-		{
-			*_end++ = val;
-		}
+			append(size() * 2);
+
+		_alloc.construct(_end++, val);
 	};
 	// empty에서 호출하는건 정의되지않은 행동이다.
 	void pop_back()
@@ -255,16 +241,54 @@ public:
 	};
 	iterator insert (iterator position, const value_type& val)
 	{
+		// if vector is full, append twice or greater
+		if (_end == _end_cap)
+			append(size() * 2);
 
+		// position 원소부터 한칸씩 밀기
+			// init 영역은 값 대입, uninit 영역은 construct
+			// 그냥 uninit 영역을 기본값으로 construct하고 값 대입을 하면?
+		//shift_right(position, position + 1, position + 1, position + 2)
+
+		// position에 val 대입
+		*position = val;
+
+		return iterator;
 	};
 	void insert (iterator position, size_type n, const value_type& val)
 	{
 		// 용량 체크.
+		if (_end == _end_cap)
+			append(n);
 	};
 	template <class InputIterator>
 	void insert (iterator position, InputIterator first, InputIterator last);
-	iterator erase (iterator position);
-	iterator erase (iterator first, iterator last);
+	iterator erase (iterator position)
+	{
+		// position 원소 삭제
+		_alloc.destroy(position);
+		// 삭제한 원소 다음 ~ 마지막원소 전부 1 칸씩 땡기기.
+		// 1 2 3 4 5
+		// 1 2 4 5
+		consturct_range_with_range(position, _end - 1, position + 1, _end);
+
+		// 새 end로 최신화.
+		--_end;
+	};
+	iterator erase (iterator first, iterator last)
+	{
+		size_type len = last - first;
+
+		// position 원소 삭제
+		_alloc.destroy_range(first, last);
+		// 삭제한 원소 다음 ~ 마지막원소 전부 len 칸씩 땡기기.
+		// 1 2 3 4 5
+		// 1 2 5
+		consturct_range_with_range(position, _end - len, position + len, _end);
+
+		// 새 end로 최신화.
+		_end -= len;
+	};
 	void swap (vector& x) // vector x는 *this와 같은 템플릿 인자를 공유하는 건가...?
 	{
 		vector<size_type> temp = *this;
@@ -305,8 +329,6 @@ public:
 
 		// construct with copy
 		consturct_range_with_range(new_begin, new_end, _begin, _end)
-		// construct with val
-		consturct_range_with_value(iter, new_end_cap, value_type());
 
 		// delete old data
 		if (!empty())
@@ -327,7 +349,7 @@ public:
 			std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
 		}
 		for(;b != e;b++)
-			_alloc.construct(b, srcb++);
+			_alloc.construct(b, *srcb++);
 	};
 	// b~e구간을 val값으로 초기화한다.
 	void constuct_range_with_value(pointer b, pointer e, value_type val = value_type())
@@ -358,6 +380,15 @@ public:
 		destroy_range(b, e);
 		_alloc.deallocate(b, len);
 	};
+	void shift_right(pointer b, pointer e, pointer srcb, pointer srce, pointer cap)
+	{
+		// 역방향으로 값을 넣어야 한다.
+		for(;b != cap;b++)
+			*b = srcb++;
+
+		for(;b != e;b++)
+			_alloc.construct(b, *srcb++);
+	}
 	// ==========================================================================================
 
 };
