@@ -4,12 +4,15 @@
 // 눈팅용
 # include <vector>
 # include <iostream>
+# include <algorithm>
 
 # include "iterator_traits.hpp"
 # include "reverse_iterator.hpp"
 # include "enable_if.hpp"
 # include "is_integral.hpp"
 # include <stdexcept> // out of range
+# include "equal.hpp"
+# include "lexicographical_compare.hpp"
 
 namespace ft
 {
@@ -291,13 +294,17 @@ public:
 	};
 	void swap (vector& x) // vector x는 *this와 같은 템플릿 인자를 공유하는 건가...?
 	{
-		vector<size_type> temp = *this;
-		*this = x;
-		x = temp;
+		pointer temp_begin = _begin;
+		pointer temp_end = _end;
+		pointer temp_end_cap = _end_cap;
 
-		begin
-		end
-		end_cap
+		_begin = x._begin;
+		_end = x._end;
+		_end_cap = x._end_cap;
+
+		x._begin = temp_begin;
+		x._end = temp_end;
+		x._end_cap = temp_end_cap;
 	};
 	void clear()
 	{
@@ -393,23 +400,52 @@ public:
 
 };
 
-
-
 // Non-member function overloads
 template <class T, class Alloc>
-bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{
+	if (lhs.size() != rhs.size())
+		return false;
+
+	// compare each element
+	return ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+};
 template <class T, class Alloc>
-bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{ return !(lhs == rhs); };
 template <class T, class Alloc>
-bool operator< (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator< (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{
+	return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+										rhs.end());
+};
 template <class T, class Alloc>
-bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{ return (lhs < rhs) || (lhs == rhs) };
+
 template <class T, class Alloc>
-bool operator> (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator> (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{ return !(lhs == rhs) && !(lhs < rhs) };
+
 template <class T, class Alloc>
-bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
+bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
+{ return (lhs == rhs) || !(lhs < rhs) };
+
 template <class T, class Alloc>
-void swap (vector<T,Alloc>& x, vector<T,Alloc>& y);
+void swap (vector<T,Alloc>& x, vector<T,Alloc>& y)
+{
+		pointer temp_begin = x._begin;
+		pointer temp_end = x._end;
+		pointer temp_end_cap = x._end_cap;
+
+		x._begin = y._begin;
+		x._end = y._end;
+		x._end_cap = y._end_cap;
+
+		y._begin = temp_begin;
+		y._end = temp_end;
+		y._end_cap = temp_end_cap;
+};
 
 }
 #endif
