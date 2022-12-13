@@ -19,7 +19,7 @@ template <class InputIterator1, class InputIterator2>
 	return true;
 };
 
-// predicate ????
+// greater<>
 template <class InputIterator1, class InputIterator2, class BinaryPredicate>
 	bool equal (InputIterator1 first1, InputIterator1 last1,
 				InputIterator2 first2, BinaryPredicate pred)
@@ -28,9 +28,6 @@ template <class InputIterator1, class InputIterator2, class BinaryPredicate>
 	{
 		// pred is function pointer
 		if (!pred(*first1++, *first2++))
-			return false;
-		// pred is function object
-		if (!pred(*first1++, *first2++)())
 			return false;
 	}
 	return true;
