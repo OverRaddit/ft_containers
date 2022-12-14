@@ -50,9 +50,7 @@ public:
 // Member functions
 	// Constructor
 	explicit vector (const allocator_type& alloc = allocator_type())
-		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
-		{
-		};
+		: _begin(0), _end(0), _end_cap(0), _alloc(alloc) {};
 	explicit vector (size_type n, const value_type& val = value_type(),
 				const allocator_type& alloc = allocator_type())
 		: _alloc(alloc)
@@ -61,6 +59,9 @@ public:
 		_begin = _alloc.allocate(n); // hint??
 		_end = _begin + n;
 		_end_cap = _begin + n;
+
+
+
 
 		// construct with value
 		construct_range_with_value(_begin, _end_cap, val);
@@ -91,19 +92,15 @@ public:
 
 	~vector ()
 	{
-		if (!empty())
-		{
-			destroy_range(_begin, _end);
-			_alloc.deallocate(_begin, _end_cap - _begin);
-		}
+		free_vector();
 	}
 
 	// 다시 구현. 매우문제많음.
 	vector& operator= (const vector& x)
 	{
-		// destroy & dealloc
-		destroy_range(_begin, _end);
-		_alloc.deallocate(_begin, _end_cap - _begin);
+		// 할당된 것이 없을때만 free한다.
+		if (_begin == _end_cap)
+			free_vector();
 
 		// realloc
 		if (size() < x.size())
@@ -295,21 +292,16 @@ public:
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (position - _begin);
 
-			std::cout << "1 기존내용 복사" << std::endl;
-			consturct_range_with_range(new_begin, new_position, _begin, position);
-			std::cout << "2 새 데이터 삽입" << std::endl;
+			construct_range_with_range(new_begin, new_position, _begin, position);
 			// insert
-			constuct_range_with_value(new_position, new_position + n, val);
-			std::cout << "3 shift" << std::endl;
+			construct_range_with_value(new_position, new_position + n, val);
 			// 구간 모두 고칠것
-			consturct_range_with_range(new_position + n, new_end, position, _end);
+			construct_range_with_range(new_position + n, new_end, position, _end);
 
 			// update member
-			std::cout << "size : " << size();
 			_begin = new_begin;
 			_end = new_end;
 			_end_cap = new_end_cap;
-			std::cout << " -> " <<size() << std::endl;
 
 			//dedalloc & destroy
 		}
@@ -345,13 +337,10 @@ public:
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (position - _begin);
 
-			consturct_range_with_range(new_begin, new_position, _begin, position);
-			std::cout << "1" << std::endl;
+			construct_range_with_range(new_begin, new_position, _begin, position);
 			// insert
 			copy_range_with_range(new_position, new_position + n, first, last);
-			std::cout << "1" << std::endl;
-			consturct_range_with_range(new_position + n, new_end, position, _end);
-			std::cout << "1" << std::endl;
+			construct_range_with_range(new_position + n, new_end, position, _end);
 
 			// update member
 			_begin = new_begin;
@@ -380,7 +369,7 @@ public:
 		// 삭제한 원소 다음 ~ 마지막원소 전부 1 칸씩 땡기기.
 		// 1 2 3 4 5
 		// 1 2 4 5
-		consturct_range_with_range(position, _end - 1, position + 1, _end);
+		construct_range_with_range(position, _end - 1, position + 1, _end);
 
 		// 새 end로 최신화.
 		--_end;
@@ -394,7 +383,7 @@ public:
 		// 삭제한 원소 다음 ~ 마지막원소 전부 len 칸씩 땡기기.
 		// 1 2 3 4 5
 		// 1 2 5
-		consturct_range_with_range(first, _end - len, first + len, _end);
+		construct_range_with_range(first, _end - len, first + len, _end);
 
 		// 새 end로 최신화.
 		_end -= len;
@@ -442,14 +431,10 @@ public:
 		new_end_cap = iter + n;
 
 		// construct with copy
-		consturct_range_with_range(new_begin, new_end, _begin, _end);
+		construct_range_with_range(new_begin, new_end, _begin, _end);
 
 		// delete old data
-		if (!empty())
-		{
-			destroy_range(_begin, _end);
-			_alloc.deallocate(_begin, _end_cap - _begin);
-		}
+		free_vector();
 
 		// update member
 		_begin = new_begin;
@@ -467,7 +452,6 @@ public:
 		}
 		for(;b != e;b++)
 		{
-			std::cout << "*srcb = " << *srcb << std::endl;
 			_alloc.construct(b, *srcb++);
 		}
 	};
@@ -492,7 +476,6 @@ public:
 	};
 	void destroy_range(pointer b, pointer e)
 	{
-		std::cout << "size : " << e - b << std::endl;
 		if (b == e)
 			return ;
 		for(;b != e;b++)
@@ -501,14 +484,23 @@ public:
 			//std::cout << "destroy one item : " << b << std::endl;
 		}
 	};
-	// destroy, dealloca range different...
-	void free_range(pointer b, pointer e)
+	void free_vector()
 	{
-		size_type	len = e - b;
+		if (!empty())
+			destroy_range(_begin, _end);
+		if (_begin != 0)
+		{
+			_alloc.deallocate(_begin, _end_cap - _begin);
+		}
+	}
+	// // destroy, dealloca range different...
+	// void free_range(pointer b, pointer e)
+	// {
+	// 	size_type	len = e - b;
 
-		destroy_range(b, e);
-		_alloc.deallocate(b, len);
-	};
+	// 	destroy_range(b, e);
+	// 	_alloc.deallocate(b, len);
+	// };
 	// srcb~srce => destb~deste, cap을 기준으로 대입/초기화가 갈린다.
 	void shift_right(pointer srcb, pointer srce, pointer destb, pointer deste,
 						pointer cap)
