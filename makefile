@@ -16,7 +16,7 @@ LINE_CLEAR	=	"\x1b[1A\x1b[M"
 # Command Variables
 # =============================================================================
 CXX			=	c++
-CFLAGS		=	#-Wall -Wextra -Werror -std=c++98
+CFLAGS		=	-g #-Wall -Wextra -Werror -std=c++98
 #CDEBUG		=	-g -fsanitize=address
 CDBUG =
 
@@ -25,7 +25,7 @@ CDBUG =
 # =============================================================================
 NAME		=	container
 SRCS_DIR	=	./
-SRC_LIST	=	src/prac.cpp
+SRC_LIST	=	src/vector_prac.cpp
 
 SRCS		=	$(addprefix $(SRCS_DIR), $(SRC_LIST))
 OBJS		=	$(SRCS:.cpp=.o)

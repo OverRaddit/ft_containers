@@ -65,6 +65,10 @@
 		"streambuf": "cpp",
 		"system_error": "cpp",
 		"type_traits": "cpp",
-		"utility": "cpp"
+		"utility": "cpp",
+		"csignal": "cpp",
+		"fstream": "cpp",
+		"iomanip": "cpp",
+		"set": "cpp"
 	}
 }

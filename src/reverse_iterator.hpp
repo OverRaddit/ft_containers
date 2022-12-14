@@ -62,26 +62,23 @@ reference operator*() const
 };
 reverse_iterator operator+(difference_type n) const
 {
-	return iter - n;
+	return reverse_iterator(iter - n);
 };
-reverse_iterator& operator++(){
-	--iter;
-	return *this;
-};
+reverse_iterator& operator++(){ --iter; return *this;};
 reverse_iterator operator++(int) {
 	reverse_iterator copy(*this);
 	iter--;
 	return copy;
 };
-reverse_iterator& operator+=(difference_type n) { return (iter -= n); };
-reverse_iterator operator-(difference_type n) const { return iter + n; };
+reverse_iterator& operator+=(difference_type n) { iter -= n; return *this; };
+reverse_iterator operator-(difference_type n) const { return reverse_iterator(iter + n); };
 reverse_iterator& operator--() { ++iter; return *this;};
 reverse_iterator operator--(int) {
 	reverse_iterator copy(*this);
 	iter++;
 	return copy;
 };
-reverse_iterator& operator-=(difference_type n) { return (iter += n); };
+reverse_iterator& operator-=(difference_type n) { iter += n; return *this; };
 pointer operator->() const { return iter; };
 reference operator[](difference_type n) const { *iter; };
 
