@@ -52,25 +52,22 @@ public:
 	explicit vector (const allocator_type& alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc) {};
 	explicit vector (size_type n, const value_type& val = value_type(),
-				const allocator_type& alloc = allocator_type())
-		: _alloc(alloc)
+						const allocator_type& alloc = allocator_type())
+		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
 		// allocate
 		_begin = _alloc.allocate(n); // hint??
 		_end = _begin + n;
 		_end_cap = _begin + n;
 
-
-
-
 		// construct with value
 		construct_range_with_value(_begin, _end_cap, val);
 	};
 	template <class InputIterator>
-		vector (InputIterator first, InputIterator last,
-					const allocator_type& alloc = allocator_type(),
-					typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
-	//: _end(last - first), _end_cap(last - first)
+	vector (InputIterator first, InputIterator last,
+				const allocator_type& alloc = allocator_type(),
+				typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
+		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
 		difference_type n = last - first;
 
@@ -95,29 +92,24 @@ public:
 		free_vector();
 	}
 
-	// 다시 구현. 매우문제많음.
 	vector& operator= (const vector& x)
 	{
 		// 할당된 것이 없을때만 free한다.
 		if (_begin == _end_cap)
 			free_vector();
 
-		// realloc
-		if (size() < x.size())
+		// x의 모든 원소를 저장할 용량이 있는가?
+		if (capacity() < x.size())
 		{
 			size_type n = x.size();
 			_begin = _alloc.allocate(n);
 			_end = _begin + n;
 			_end_cap = _end;
 		}
+
 		// construct with copy
-		pointer dest = _begin;
-		pointer src = x._begin;
-		for( ; dest != _end; dest++)
-			_alloc.construct(dest, *src++);
-		// construct with default
-		for( ; dest != _end_cap; dest++)
-			_alloc.construct(dest, value_type());
+		construct_range_with_range(_begin, _end, x._begin, x._end);
+
 		return *this;
 	};
 
@@ -216,7 +208,7 @@ public:
 			append(n);
 
 		// construct with value
-		consturct_range_with_range(_begin, _end, first, last);
+		construct_range_with_range(_begin, _end, first, last);
 	};
 	void assign (size_type n, const value_type& val)
 	{
@@ -228,7 +220,7 @@ public:
 			append(n);
 
 		// construct with value
-		constuct_range_with_value(_begin, _end, val);
+		construct_range_with_value(_begin, _end, val);
 	};
 	void push_back (const value_type& val)
 	{
@@ -373,6 +365,8 @@ public:
 
 		// 새 end로 최신화.
 		--_end;
+
+		return position;
 	};
 	iterator erase (iterator first, iterator last)
 	{
@@ -387,6 +381,8 @@ public:
 
 		// 새 end로 최신화.
 		_end -= len;
+
+		return first;
 	};
 	void swap (vector& x) // vector x는 *this와 같은 템플릿 인자를 공유하는 건가...?
 	{
