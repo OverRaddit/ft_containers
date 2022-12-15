@@ -130,29 +130,33 @@ public:
 	// Capacity ================================================================================
 	size_type size() const { return _end - _begin; };
 	size_type max_size() const { return _alloc.max_size(); };
-	// 포인터 재재할할당당시  포포이이ㅏㅏㄴㄴ터  값  최최신신화화할할것것.
+
+	// 원소의 개수를 조정한다.
 	void resize (size_type n, value_type val = value_type())
 	{
+		// 추가할당 + 복사 + 초기화
 		if (n > capacity())
 		{
 			append(n);
-		}
-		else if (n < size())
-		{
-			// n 초과의 원소에 대해 remove & destroy
-			pointer new_end = _begin + n;
-			destroy_range(new_end, _end);
-			_end = new_end;
+			construct_range_with_value(_end, _end_cap, val);
+			_end = _end_cap;
 		}
 		// capacity안에서 값 채우기
 		else if (n > size())
 		{
-			pointer new_end = _begin + n;
+			// 어떤 방식이 더 좋을까!
 
-			// copy
-			while(_end != new_end)
-				*_end++ = val; // end에 val값을 넣는다.
-			// already update end
+			// while(_end != _begin + n)
+			// 	*_end++ = val;
+
+			construct_range_with_value(_end, _begin + n, val);
+			_end = _begin + n;
+		}
+		// n 초과의 원소에 대해 remove & destroy
+		else if (n < size())
+		{
+			destroy_range(_begin + n, _end);
+			_end = _begin + n;
 		}
 	};
 	size_type capacity() const { return _end_cap - _begin; };
