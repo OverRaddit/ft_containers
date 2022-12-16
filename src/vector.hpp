@@ -56,12 +56,11 @@ public:
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
 		// allocate
-		_begin = _alloc.allocate(n); // hint??
-		_end = _begin + n;
-		_end_cap = _begin + n;
+		reserve(n);
 
 		// construct with value
-		construct_range_with_value(_begin, _end_cap, val);
+		construct_range_with_value(_begin, _end, val);
+		_end = _begin + n;
 	};
 	template <class InputIterator>
 	vector (InputIterator first, InputIterator last,
@@ -69,17 +68,12 @@ public:
 				typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
-		difference_type n = last - first;
-
 		// allocate
-		_begin = _alloc.allocate(n);
-		pointer _temp = _begin;
-		_end = _begin + n;
-		_end_cap = _begin + n;
+		reserve(last - first);
 
-		// _end보다 커지면?
+		// init
 		for( ; first != last; first++)
-			_alloc.construct(_temp++, *first);
+			_alloc.construct(_end++, *first);
 	};
 	vector (const vector& x)
 	: _begin(0), _end(0), _end_cap(0), _alloc(allocator_type())
@@ -94,21 +88,17 @@ public:
 
 	vector& operator= (const vector& x)
 	{
-		// 할당된 것이 없을때만 free한다.
-		if (_begin == _end_cap)
+		// 할당된 것이 있을때만 free한다.
+		if (_begin != _end_cap)
 			free_vector();
 
 		// x의 모든 원소를 저장할 용량이 있는가?
 		if (capacity() < x.size())
-		{
-			size_type n = x.size();
-			_begin = _alloc.allocate(n);
-			_end = _begin + n;
-			_end_cap = _end;
-		}
+			reserve(x.size());
 
 		// construct with copy
 		construct_range_with_range(_begin, _end, x._begin, x._end);
+		_end = _begin + x.size();
 
 		return *this;
 	};
@@ -137,7 +127,7 @@ public:
 		// 추가할당 + 복사 + 초기화
 		if (n > capacity())
 		{
-			append(n);
+			reserve(n);
 			construct_range_with_value(_end, _end_cap, val);
 			_end = _end_cap;
 		}
@@ -169,7 +159,10 @@ public:
 		if (n <= capacity())
 			return ;
 
-		resize(n);
+		// resize는 할당 + 초기화까지 같이 시켜줌
+		// reserve는 할당만 하고 초기화는 하지 않음.
+		// 즉, 둘은 다른 연산임.
+		append(n);
 	};
 	// ==========================================================================================
 
@@ -209,10 +202,10 @@ public:
 
 		// deallocate & reallocate
 		if (capacity() < n)
-			append(n);
+			reserve(n);
 
 		// construct with value
-		construct_range_with_range(_begin, _end, first, last);
+		construct_range_with_range(_begin, _end, static_cast<pointer>(first), static_cast<pointer>(last));
 	};
 	void assign (size_type n, const value_type& val)
 	{
@@ -221,20 +214,21 @@ public:
 
 		// deallocate & reallocate
 		if (capacity() < n)
-			append(n);
+			reserve(n);
 
 		// construct with value
 		construct_range_with_value(_begin, _end, val);
 	};
 	void push_back (const value_type& val)
 	{
-		// if vector is FULL, append capacity * 2 with val
-		if (_end == _end_cap)
-		{
-			append(size() * 2);
-		}
+		// // if vector is FULL, append capacity * 2 with val
+		// if (_end == _end_cap)
+		// {
+		// 	reserve(size() * 2);
+		// }
 
-		_alloc.construct(_end++, val);
+		// _alloc.construct(_end++, val);
+		insert(_end, val);
 	};
 	// empty에서 호출하는건 정의되지않은 행동이다.
 	void pop_back()
@@ -249,14 +243,15 @@ public:
 		if (_end == _end_cap)
 		{
 			// reallocate
-			pointer new_begin = _alloc.allocate(size() * 2);
+			size_type new_cap = (size() == 0) ? 1 : size() * 2;
+			pointer new_begin = _alloc.allocate(new_cap);
 			pointer new_end = new_begin + size() + 1;
-			pointer new_end_cap = new_begin + size() * 2;
+			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (position - _begin);
 
-			consturct_range_with_range(new_begin, new_position, _begin, position);
+			construct_range_with_range(new_begin, new_position, _begin, position);
 			_alloc.construct(new_position, val);
-			consturct_range_with_range(new_position + 1, new_end, position, _end);
+			construct_range_with_range(new_position + 1, new_end, position, _end);
 
 			// update member
 			_begin = new_begin;
@@ -281,7 +276,7 @@ public:
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
 			// 생각해볼것....!
-			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() : size() + n;
+			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
@@ -326,7 +321,7 @@ public:
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
 			// 생각해볼것....!
-			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() : size() + n;
+			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
@@ -335,7 +330,7 @@ public:
 
 			construct_range_with_range(new_begin, new_position, _begin, position);
 			// insert
-			copy_range_with_range(new_position, new_position + n, first, last);
+			construct_range_with_range(new_position, new_position + n, static_cast<pointer>(first), static_cast<pointer>(last));
 			construct_range_with_range(new_position + n, new_end, position, _end);
 
 			// update member
@@ -492,6 +487,9 @@ public:
 		{
 			_alloc.deallocate(_begin, _end_cap - _begin);
 		}
+		_begin = 0;
+		_end = 0;
+		_end_cap = 0;
 	}
 	// // destroy, dealloca range different...
 	// void free_range(pointer b, pointer e)
