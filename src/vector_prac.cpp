@@ -103,31 +103,75 @@
 // }
 
 
+// template <typename T>
+// std::vector<int> constructor_test(std::vector<T> vector) {
+//     std::vector<int> v;
+//     std::vector<int> tmp0(vector);
+//     std::vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
+//     tmp = tmp2;
+//     std::vector<int> tmp3(tmp);
+//     std::vector<int> tmp4(tmp.begin(), tmp.end());
+//     v.push_back(tmp4.size());
+//     v.push_back(tmp4.capacity());
+//     v.push_back(tmp[2]);
+//     v.push_back(tmp3[2]);
+//     v.push_back(tmp4[2]);
+//     try { std::vector<int> tmp5(-1, -1); }
+//     catch (std::exception &e) { v.push_back(1); }
+//     return v;
+// }
+
+// template <typename T>
+// std::vector<int> constructor_test(_vector<T> vector) {
+//     std::vector<int> v;
+// 	_vector<int> tmp0(vector);
+//     _vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
+//     tmp = tmp2;
+//     _vector<int> tmp3(tmp);
+//     _vector<int> tmp4(tmp.begin(), tmp.end());
+//     v.push_back(tmp4.size());
+//     v.push_back(tmp4.capacity());
+//     v.push_back(tmp[2]);
+//     v.push_back(tmp3[2]);
+//     v.push_back(tmp4[2]);
+//     try { _vector<int> tmp5(-1, -1); }
+//     catch (std::exception &e) { v.push_back(1); }
+//     return v;
+// }
 
 template <typename T>
-std::vector<int> begin_test(std::vector<T> vector) {
+std::vector<int> resize_test(std::vector<T> vector) {
     std::vector<int> v;
-    vector.assign(1000, 1);
-    v.push_back(*vector.begin());
-    v.push_back(*++vector.begin());
+    vector.assign(9900 * _ratio, 1);
+    vector.resize(5000 * _ratio);
+    vector.reserve(5000 * _ratio);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    vector.resize(7000 * _ratio);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    vector.resize(15300 * _ratio, T());
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    v.push_back(vector[65]);
     return v;
 }
 
 template <typename T>
-std::vector<int> begin_test(_vector<T> vector) {
+std::vector<int> resize_test(_vector<T> vector) {
     std::vector<int> v;
-    vector.assign(1000, 1);
-    v.push_back(*vector.begin());
-
-	// 이건 되는데
-	typename _vector<T>::iterator iter = vector.begin();
-	std::cout << ++iter << std::endl;
-
-	// 이건 안됨;;
-	std::cout << ++(vector.begin()) << std::endl;
-
-    //v.push_back(*(++vector.begin()));
-    //v.push_back(*++vector.begin());
+    vector.assign(9900 * _ratio, 1);
+    vector.resize(5000 * _ratio);
+    vector.reserve(5000 * _ratio);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    vector.resize(7000 * _ratio);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    vector.resize(15300 * _ratio, T());
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+    v.push_back(vector[65]);
     return v;
 }
 
@@ -169,22 +213,39 @@ int main()
 
 	std::vector<int> v3;
 
-	v1 = begin_test(v);
+	v1 = resize_test(v);
 
-	v3 = begin_test(v2);
+	v3 = resize_test(v2);
 
-	// std::cout << v1.size() << std::endl;
-	// std::cout << v1.capacity() << std::endl;
-
-	// for (std::vector<int>::iterator it = v1.begin(); it != v1.end(); it++)
-	// 	std::cout << *it <<  " " ;
-	// std::cout << std::endl << std::endl;
-
-
-	// std::cout << v3.size() << std::endl;
-	// std::cout << v3.capacity() << std::endl;
-
-	// for (std::vector<int>::iterator it = v3.begin(); it != v3.end(); it++)
-	// 	std::cout << *it <<  " " ;
-	// std::cout << std::endl;
 }
+
+
+//==========================================
+
+// std::iterator example
+// #include <iostream>     // std::cout
+// #include <iterator>     // std::iterator, std::input_iterator_tag
+
+// class MyIterator : public std::iterator<std::input_iterator_tag, int>
+// {
+//   int* p;
+// public:
+//   MyIterator(int* x) :p(x) {}
+//   MyIterator(const MyIterator& mit) : p(mit.p) {}
+//   MyIterator& operator++() {++p;return *this;}
+//   MyIterator operator++(int) {MyIterator tmp(*this); operator++(); return tmp;}
+//   bool operator==(const MyIterator& rhs) const {return p==rhs.p;}
+//   bool operator!=(const MyIterator& rhs) const {return p!=rhs.p;}
+// //   int& operator*() {return *p;}
+// };
+
+// int main () {
+//   int numbers[]={10,20,30,40,50};
+//   MyIterator from(numbers);
+//   MyIterator until(numbers+5);
+//   for (MyIterator it=from; it!=until; it++)
+//     std::cout << *it << ' ';
+//   std::cout << '\n';
+
+//   return 0;
+// }

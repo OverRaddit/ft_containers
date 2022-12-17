@@ -5,6 +5,8 @@
 # include <vector>
 # include <iostream>
 # include <algorithm>
+# include <iterator>
+
 
 # include "iterator_traits.hpp"
 # include "reverse_iterator.hpp"
@@ -13,6 +15,7 @@
 # include <stdexcept> // out of range
 # include "equal.hpp"
 # include "lexicographical_compare.hpp"
+# include "vector_iterator.hpp"
 
 namespace ft
 {
@@ -31,11 +34,13 @@ public:
 	typedef typename allocator_type::reference			reference;
 	typedef typename allocator_type::const_reference	const_reference;
 	typedef typename allocator_type::pointer			pointer;
+	//typedef typename std::__base::pointer                 pointer;
 	typedef typename allocator_type::const_pointer		const_pointer;
 	//iterator 4
 	// iter, const_iter 타입정의 이해안됨.
-	typedef pointer													iterator;
-	typedef const_pointer											const_iterator;
+	//typedef pointer													iterator;
+	typedef ft::vector_iterator<T>									iterator;
+	typedef ft::vector_iterator<const T>							const_iterator;
 	typedef ft::reverse_iterator<iterator>							reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator>					const_reverse_iterator;
 
@@ -104,17 +109,17 @@ public:
 	};
 
 	// Iterators ================================================================================
-	iterator begin() { return _begin; };
+	iterator begin() { return iterator(_begin); };
 	const_iterator begin() const { return const_cast<iterator>(_begin); };
 
-	iterator end() { return _end; };
+	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_cast<iterator>(_end); };
 
-	reverse_iterator rbegin() { return reverse_iterator(_begin); };
-	const_reverse_iterator rbegin() const { return const_cast<reverse_iterator>(_begin); };
+	reverse_iterator rbegin() { return reverse_iterator(end()); };
+	const_reverse_iterator rbegin() const { return const_cast<reverse_iterator>(end()); };
 
-	reverse_iterator rend() { return reverse_iterator(_end); };
-	const_reverse_iterator rend() const { return const_cast<reverse_iterator>(_end); };
+	reverse_iterator rend() { return reverse_iterator(begin()); };
+	const_reverse_iterator rend() const { return const_cast<reverse_iterator>(begin()); };
 	// ==========================================================================================
 
 	// Capacity ================================================================================
@@ -202,10 +207,12 @@ public:
 
 		// deallocate & reallocate
 		if (capacity() < n)
+		{
 			reserve(n);
+		}
 
 		// construct with value
-		construct_range_with_range(_begin, _end, static_cast<pointer>(first), static_cast<pointer>(last));
+		construct_range_with_range(_begin, _begin + n, static_cast<pointer>(first), static_cast<pointer>(last));
 	};
 	void assign (size_type n, const value_type& val)
 	{
@@ -217,7 +224,8 @@ public:
 			reserve(n);
 
 		// construct with value
-		construct_range_with_value(_begin, _end, val);
+		construct_range_with_value(_begin, _begin + n, val);
+		_end += n;
 	};
 	void push_back (const value_type& val)
 	{
@@ -238,7 +246,6 @@ public:
 	};
 	iterator insert (iterator position, const value_type& val)
 	{
-		std::cout << "iter single version" << std::endl;
 		// if vector is full, append twice or greater
 		if (_end == _end_cap)
 		{
@@ -247,11 +254,11 @@ public:
 			pointer new_begin = _alloc.allocate(new_cap);
 			pointer new_end = new_begin + size() + 1;
 			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position - _begin);
+			pointer new_position = new_begin + (position.base() - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position);
+			construct_range_with_range(new_begin, new_position, _begin, position.base());
 			_alloc.construct(new_position, val);
-			construct_range_with_range(new_position + 1, new_end, position, _end);
+			construct_range_with_range(new_position + 1, new_end, position.base(), _end);
 
 			// update member
 			_begin = new_begin;
@@ -260,7 +267,7 @@ public:
 		}
 		else // 공간이 충분하다. shift + insert
 		{
-			shift_right(position, _end, position + 1, _end + 1, _end);
+			shift_right(position.base(), _end, position.base() + 1, _end + 1, _end);
 			*position = val;
 
 			// update member
@@ -271,8 +278,6 @@ public:
 	};
 	void insert (iterator position, size_type n, const value_type& val)
 	{
-		std::cout << "iter fill version(pos,n,val): " << position << ", " << n << ", " << val << std::endl;
-
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
 			// 생각해볼것....!
@@ -281,13 +286,13 @@ public:
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position - _begin);
+			pointer new_position = new_begin + (position.base() - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position);
+			construct_range_with_range(new_begin, new_position, _begin, position.base());
 			// insert
 			construct_range_with_value(new_position, new_position + n, val);
 			// 구간 모두 고칠것
-			construct_range_with_range(new_position + n, new_end, position, _end);
+			construct_range_with_range(new_position + n, new_end, position.base(), _end);
 
 			// update member
 			_begin = new_begin;
@@ -299,13 +304,13 @@ public:
 		else // 공간이 충분하다.
 		{
 			//shift
-			shift_right(position, _end, position + n, _end + n, _end);
+			shift_right(position.base(), _end, position.base() + n, _end + n, _end);
 
 			//insert
-			for(; position != _end ; position++) // _end전까진 값 대입
+			for(; position.base() != _end ; position.base()++) // _end전까진 값 대입
 				*position = val;
-			for(; position != _end ; _end + n) // _end+n까진 construct
-				_alloc.construct(position, val);
+			for(; position.base() != _end ; _end + n) // _end+n까진 construct
+				_alloc.construct(position.base(), val);
 
 			// update member
 			_end = _end + n;
@@ -315,7 +320,6 @@ public:
 	void insert (iterator position, InputIterator first, InputIterator last,
 					typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
 	{
-		std::cout << "iter range version" << std::endl;
 		size_type n = last - first;
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
@@ -326,12 +330,12 @@ public:
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position - _begin);
+			pointer new_position = new_begin + (position.base() - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position);
+			construct_range_with_range(new_begin, new_position, _begin, position.base());
 			// insert
 			construct_range_with_range(new_position, new_position + n, static_cast<pointer>(first), static_cast<pointer>(last));
-			construct_range_with_range(new_position + n, new_end, position, _end);
+			construct_range_with_range(new_position + n, new_end, position.base(), _end);
 
 			// update member
 			_begin = new_begin;
@@ -341,13 +345,13 @@ public:
 		else // 공간이 충분하다.
 		{
 			//shift
-			shift_right(position, _end, position + n, _end + n, _end);
+			shift_right(position.base(), _end, position.base() + n, _end + n, _end);
 
 			//insert
-			for(; position != _end ; position++) // _end전까진 값 대입
+			for(; position.base() != _end ; position++) // _end전까진 값 대입
 				*position = first++;
-			for(; position != _end ; _end + n) // _end+n까진 construct
-				_alloc.construct(position, *first++);
+			for(; position.base() != _end ; _end + n) // _end+n까진 construct
+				_alloc.construct(position.base(), *first++);
 
 			// update member
 			_end = _end + n;
@@ -356,11 +360,11 @@ public:
 	iterator erase (iterator position)
 	{
 		// position 원소 삭제
-		_alloc.destroy(position);
+		_alloc.destroy(position.base());
 		// 삭제한 원소 다음 ~ 마지막원소 전부 1 칸씩 땡기기.
 		// 1 2 3 4 5
 		// 1 2 4 5
-		construct_range_with_range(position, _end - 1, position + 1, _end);
+		construct_range_with_range(position.base(), _end - 1, position.base() + 1, _end);
 
 		// 새 end로 최신화.
 		--_end;

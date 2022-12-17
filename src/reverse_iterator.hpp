@@ -13,7 +13,7 @@ public:
 // ================================================================================
 // Member Types
 // ================================================================================
-typedef Iterator											iterator_type;
+typedef Iterator													iterator_type;
 typedef typename ft::iterator_traits<Iterator>::iterator_category	iterator_category;
 typedef typename ft::iterator_traits<Iterator>::value_type			value_type;
 typedef typename ft::iterator_traits<Iterator>::difference_type		difference_type;
@@ -49,16 +49,9 @@ reverse_iterator& operator=(const reverse_iterator<U>& other)
 
 reference operator*() const
 {
-	// std::cout << "*iter = " << *iter << std::endl;
-	// //std::cout << "iter = " << iter << std::endl;
-	// std::cout << "*base() = " << *base() << std::endl;
-	// reverse_iterator copy(*this);
-	// iter++;
-	// return copy;
-
-	//return (*(iter - 1));
 	iterator_type copy = iter;
 	return *--copy;
+	// return *(iter - 1);
 };
 reverse_iterator operator+(difference_type n) const
 {
@@ -80,7 +73,7 @@ reverse_iterator operator--(int) {
 };
 reverse_iterator& operator-=(difference_type n) { iter += n; return *this; };
 pointer operator->() const { return iter; };
-reference operator[](difference_type n) const { *iter; };
+reference operator[](difference_type n) const { return *iter; };
 
 };
 

@@ -27,15 +27,27 @@ public:
 };
 
 template <class T>
-class iterator_traits<const T*>
+struct iterator_traits <const T*>
 {
 public:
 	typedef random_access_iterator_tag	iterator_category;
-	typedef T 							value_type;
+	typedef T							value_type;
 	typedef ptrdiff_t					difference_type;
-	typedef const T*					pointer;
-	typedef const T&					reference;
+	typedef T*							pointer;
+	typedef T&							reference;
 };
+
+
+// template <class T, class tag>
+// struct iterator_traits <const T*, random_access_iterator_tag>
+// {
+// public:
+// 	// typedef random_access_iterator_tag	iterator_category;
+// 	// typedef T							value_type;
+// 	// typedef ptrdiff_t					difference_type;
+// 	// typedef T*							pointer;
+// 	// typedef T&							reference;
+// };
 
 }
 #endif
