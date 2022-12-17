@@ -130,20 +130,29 @@ public:
 	void resize (size_type n, value_type val = value_type())
 	{
 		// 추가할당 + 복사 + 초기화
-		if (n > capacity())
-		{
-			reserve(n);
-			construct_range_with_value(_end, _end_cap, val);
-			_end = _end_cap;
-		}
+		// if (n > capacity())
+		// {
+		// 	size_type new_size = capacity();
+		// 	while(new_size > n)
+		// 		new_size = new_size * 2;
+		// 	reserve(new_size);
+		// 	construct_range_with_value(_end, _end_cap, val);
+		// 	_end = _end_cap;
+		// }
 		// capacity안에서 값 채우기
-		else if (n > size())
+		if (n > size())
 		{
 			// 어떤 방식이 더 좋을까!
 
 			// while(_end != _begin + n)
 			// 	*_end++ = val;
-
+			if (n > capacity())
+			{
+				if (n > capacity() * 2)
+					reserve(n);
+				else
+					reserve(capacity() * 2);
+			}
 			construct_range_with_value(_end, _begin + n, val);
 			_end = _begin + n;
 		}
@@ -153,6 +162,8 @@ public:
 			destroy_range(_begin + n, _end);
 			_end = _begin + n;
 		}
+
+
 	};
 	size_type capacity() const { return _end_cap - _begin; };
 	bool empty() const { return _end == _begin; };

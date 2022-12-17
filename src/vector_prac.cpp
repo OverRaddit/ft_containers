@@ -147,31 +147,59 @@ std::vector<int> resize_test(std::vector<T> vector) {
     vector.reserve(5000 * _ratio);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
     vector.resize(7000 * _ratio);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
     vector.resize(15300 * _ratio, T());
     v.push_back(vector.size());
     v.push_back(vector.capacity());
     v.push_back(vector[65]);
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+	std::cout << vector[65] << std::endl;
+
+
     return v;
 }
 
 template <typename T>
 std::vector<int> resize_test(_vector<T> vector) {
     std::vector<int> v;
-    vector.assign(9900 * _ratio, 1);
+    // vector.assign(9900 * _ratio, 1);
+    // vector.resize(5000 * _ratio);
+    // vector.reserve(5000 * _ratio);
+    // v.push_back(vector.size());
+    // v.push_back(vector.capacity());
+    // vector.resize(7000 * _ratio);
+    // v.push_back(vector.size());
+    // v.push_back(vector.capacity());
+    // vector.resize(15300 * _ratio, T());
+    // v.push_back(vector.size());
+    // v.push_back(vector.capacity());
+    // v.push_back(vector[65]);
+	    vector.assign(9900 * _ratio, 1);
     vector.resize(5000 * _ratio);
     vector.reserve(5000 * _ratio);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
     vector.resize(7000 * _ratio);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
     vector.resize(15300 * _ratio, T());
     v.push_back(vector.size());
     v.push_back(vector.capacity());
     v.push_back(vector[65]);
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+	std::cout << vector[65] << std::endl;
     return v;
 }
 
