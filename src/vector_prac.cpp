@@ -248,9 +248,9 @@ int main()
 
 	std::vector<int> v3;
 
-	v1 = insert_test_3(v);
+	v1 = insert_test_2(v);
 
-	v3 = insert_test_3(v2);
+	v3 = insert_test_2(v2);
 
 }
 

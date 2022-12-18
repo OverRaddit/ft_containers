@@ -300,12 +300,18 @@ public:
 			// 구간 모두 고칠것
 			construct_range_with_range(new_position + n, new_end, pos, _end);
 
+			//dedalloc & destroy
+			if (capacity() != 0)
+			{
+				std::cout << "destroy && dealloc while insert(fill)" << std::endl;
+				free_vector();
+			}
+
 			// update member
 			_begin = new_begin;
 			_end = new_end;
 			_end_cap = new_end_cap;
 
-			//dedalloc & destroy
 		}
 		else // 공간이 충분하다.
 		{
