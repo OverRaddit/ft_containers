@@ -99,7 +99,10 @@ public:
 
 		// x의 모든 원소를 저장할 용량이 있는가?
 		if (capacity() < x.size())
-			reserve(x.size());
+		{
+			size_type new_size = (capacity() * 2 < x.size()) ? x.size() : capacity() * 2;
+			reserve(new_size);
+		}
 
 		// construct with copy
 		construct_range_with_range(_begin, _end, x._begin, x._end);
@@ -110,16 +113,16 @@ public:
 
 	// Iterators ================================================================================
 	iterator begin() { return iterator(_begin); };
-	const_iterator begin() const { return const_cast<iterator>(_begin); };
+	const_iterator begin() const { return const_iterator(_begin); };
 
 	iterator end() { return iterator(_end); };
-	const_iterator end() const { return const_cast<iterator>(_end); };
+	const_iterator end() const { return const_iterator(_end); };
 
 	reverse_iterator rbegin() { return reverse_iterator(end()); };
-	const_reverse_iterator rbegin() const { return const_cast<reverse_iterator>(end()); };
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); };
 
 	reverse_iterator rend() { return reverse_iterator(begin()); };
-	const_reverse_iterator rend() const { return const_cast<reverse_iterator>(begin()); };
+	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); };
 	// ==========================================================================================
 
 	// Capacity ================================================================================
@@ -129,41 +132,21 @@ public:
 	// 원소의 개수를 조정한다.
 	void resize (size_type n, value_type val = value_type())
 	{
-		// 추가할당 + 복사 + 초기화
-		// if (n > capacity())
-		// {
-		// 	size_type new_size = capacity();
-		// 	while(new_size > n)
-		// 		new_size = new_size * 2;
-		// 	reserve(new_size);
-		// 	construct_range_with_value(_end, _end_cap, val);
-		// 	_end = _end_cap;
-		// }
-		// capacity안에서 값 채우기
+		if (n == size())
+			return ;
+
 		if (n > size())
 		{
-			// 어떤 방식이 더 좋을까!
-
-			// while(_end != _begin + n)
-			// 	*_end++ = val;
 			if (n > capacity())
 			{
-				if (n > capacity() * 2)
-					reserve(n);
-				else
-					reserve(capacity() * 2);
+				size_type new_size = (n > capacity() * 2) ? n: capacity() * 2;
+				reserve(new_size);
 			}
 			construct_range_with_value(_end, _begin + n, val);
-			_end = _begin + n;
 		}
-		// n 초과의 원소에 대해 remove & destroy
 		else if (n < size())
-		{
 			destroy_range(_begin + n, _end);
-			_end = _begin + n;
-		}
-
-
+		_end = _begin + n;
 	};
 	size_type capacity() const { return _end_cap - _begin; };
 	bool empty() const { return _end == _begin; };
@@ -219,11 +202,13 @@ public:
 		// deallocate & reallocate
 		if (capacity() < n)
 		{
-			reserve(n);
+			size_type new_size = (capacity() * 2 < n) ? n : capacity() * 2;
+			reserve(new_size);
 		}
 
 		// construct with value
-		construct_range_with_range(_begin, _begin + n, static_cast<pointer>(first), static_cast<pointer>(last));
+		construct_range_with_range(_begin, _begin + n, first.base(), last.base());
+		_end += n;
 	};
 	void assign (size_type n, const value_type& val)
 	{
@@ -232,7 +217,10 @@ public:
 
 		// deallocate & reallocate
 		if (capacity() < n)
+		{
+			size_type new_size = (capacity() * 2 < n) ? n : capacity() * 2;
 			reserve(n);
+		}
 
 		// construct with value
 		construct_range_with_value(_begin, _begin + n, val);
@@ -261,7 +249,7 @@ public:
 		if (_end == _end_cap)
 		{
 			// reallocate
-			size_type new_cap = (size() == 0) ? 1 : size() * 2;
+			size_type new_cap = (size() == 0) ? 1 : capacity() * 2;
 			pointer new_begin = _alloc.allocate(new_cap);
 			pointer new_end = new_begin + size() + 1;
 			pointer new_end_cap = new_begin + new_cap;
@@ -271,10 +259,15 @@ public:
 			_alloc.construct(new_position, val);
 			construct_range_with_range(new_position + 1, new_end, position.base(), _end);
 
+			// free
+			free_vector();
+
 			// update member
 			_begin = new_begin;
 			_end = new_end;
 			_end_cap = new_end_cap;
+
+			return new_position;
 		}
 		else // 공간이 충분하다. shift + insert
 		{
@@ -283,12 +276,14 @@ public:
 
 			// update member
 			_end = _end + 1;
-		}
 
-		return position;
+			return position;
+		}
 	};
 	void insert (iterator position, size_type n, const value_type& val)
 	{
+		pointer pos = position.base();
+
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
 			// 생각해볼것....!
@@ -297,13 +292,13 @@ public:
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position.base() - _begin);
+			pointer new_position = new_begin + (pos - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position.base());
+			construct_range_with_range(new_begin, new_position, _begin, pos);
 			// insert
 			construct_range_with_value(new_position, new_position + n, val);
 			// 구간 모두 고칠것
-			construct_range_with_range(new_position + n, new_end, position.base(), _end);
+			construct_range_with_range(new_position + n, new_end, pos, _end);
 
 			// update member
 			_begin = new_begin;
@@ -315,13 +310,13 @@ public:
 		else // 공간이 충분하다.
 		{
 			//shift
-			shift_right(position.base(), _end, position.base() + n, _end + n, _end);
+			shift_right(pos, _end, pos + n, _end + n, _end);
 
 			//insert
-			for(; position.base() != _end ; position.base()++) // _end전까진 값 대입
-				*position = val;
-			for(; position.base() != _end ; _end + n) // _end+n까진 construct
-				_alloc.construct(position.base(), val);
+			for(; pos != _end ; pos++) // _end전까진 값 대입
+				*pos = val;
+			for(; pos != _end + n ; pos++) // _end+n까진 construct
+				_alloc.construct(pos, val);
 
 			// update member
 			_end = _end + n;
@@ -332,6 +327,7 @@ public:
 					typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
 	{
 		size_type n = last - first;
+		pointer pos = position.base();
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
@@ -341,12 +337,15 @@ public:
 			pointer new_begin = _alloc.allocate(size() * 2);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position.base() - _begin);
+			pointer new_position = new_begin + (pos - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position.base());
+			construct_range_with_range(new_begin, new_position, _begin, pos);
 			// insert
-			construct_range_with_range(new_position, new_position + n, static_cast<pointer>(first), static_cast<pointer>(last));
-			construct_range_with_range(new_position + n, new_end, position.base(), _end);
+			// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
+			pointer First = first.base();
+			pointer Last = last.base();
+			construct_range_with_range(new_position, new_position + n, First, Last);
+			construct_range_with_range(new_position + n, new_end, pos, _end);
 
 			// update member
 			_begin = new_begin;
@@ -356,13 +355,13 @@ public:
 		else // 공간이 충분하다.
 		{
 			//shift
-			shift_right(position.base(), _end, position.base() + n, _end + n, _end);
+			shift_right(pos, _end, pos + n, _end + n, _end);
 
 			//insert
-			for(; position.base() != _end ; position++) // _end전까진 값 대입
-				*position = first++;
-			for(; position.base() != _end ; _end + n) // _end+n까진 construct
-				_alloc.construct(position.base(), *first++);
+			for(; pos != _end ; pos++) // _end전까진 값 대입
+				*pos = *first++;
+			for(; pos != _end + n ; pos++) // _end+n까진 construct
+				_alloc.construct(pos, *first++);
 
 			// update member
 			_end = _end + n;
@@ -387,11 +386,11 @@ public:
 		size_type len = last - first;
 
 		// position 원소 삭제
-		_alloc.destroy_range(first, last);
+		destroy_range(first.base(), last.base());
 		// 삭제한 원소 다음 ~ 마지막원소 전부 len 칸씩 땡기기.
 		// 1 2 3 4 5
 		// 1 2 5
-		construct_range_with_range(first, _end - len, first + len, _end);
+		construct_range_with_range(first.base(), _end - len, first.base() + len, _end);
 
 		// 새 end로 최신화.
 		_end -= len;
