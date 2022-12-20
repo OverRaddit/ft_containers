@@ -173,12 +173,18 @@ std::vector<int> insert_test_3(std::vector<T> vector) {
     v1.push_back(&(*k2));
     v1.push_back(&(*k3));
     v1.push_back(&(*k4));
-    try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
+    try {
+		vv.insert(vv.begin(), v1.begin(), v1.end());
+		std::cout << "DEBUG" << std::endl;
+	}
     catch (...) {
+		//std::cout << "[" << e.what() << "]" << std::endl;
         v.push_back(vv.size());
+		std::cout << "DEBUG2" << std::endl;
         v.push_back(vv.capacity());
+		std::cout << "DEBUG3" << std::endl;
     }
-
+	std::cout << "DEBUG4" << std::endl;
     return v;
 }
 
@@ -203,7 +209,8 @@ std::vector<int> insert_test_3(_vector<T> vector) {
     v1.push_back(&(*k3));
     v1.push_back(&(*k4));
     try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
-    catch (...) {
+    catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
         v.push_back(vv.size());
         v.push_back(vv.capacity());
     }
@@ -248,9 +255,41 @@ int main()
 
 	std::vector<int> v3;
 
-	v1 = insert_test_2(v);
+	v1 = insert_test_3(v);
 
-	v3 = insert_test_2(v2);
+	//v3 = insert_test_3(v2);
+
+	// std::cout << "START2" << std::endl;
+	// std::vector<A> v;
+	// std::cout << "START3" << std::endl;
+	// A *a = new A();
+	// B *b = new B();
+	// //v.push_back(*a);
+	// //v.push_back(123);
+	// v.push_back(*a);
+	// std::cout << "1" << std::endl;
+	// //v.push_back(a); // <- segfault
+	// std::cout << "2" << std::endl;
+	// //v.push_back(*b); <- compile error
+	// std::cout << "3" << std::endl;
+	// //v.push_back(b); <- segfault
+	// std::cout << "START4" << std::endl;
+	// std::vector<B*> v2;
+	// v2.push_back(new B());
+	// v2.push_back(new B());
+	// v2.push_back(new B());
+	// std::cout << "START5" << std::endl;
+	// try
+	// {
+	// 	v.insert(v.begin(), v2.begin(), v2.end());
+	// 	/* code */
+	// }
+	// catch(...)
+	// {
+	// 	//std::cerr << e.what() << '\n';
+	// 	std::cout << "A";
+	// }
+	// std::cout << "B";
 
 }
 

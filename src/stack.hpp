@@ -29,33 +29,35 @@ public:
 
 	bool empty() const { return container.empty(); };
 	size_type size() const { return container.size(); };
-	value_type& top() { return *(container.end()); };
+	value_type& top() { return *(container.end() - 1); };
 	const value_type& top() const { return *(container.end()); };
 
 	// 내부 컨테이너가 list, vector일때 호출하는 함수가 다른데....?
 	void push (const value_type& val) { container.push_back(val); };
 	void pop() { container.pop_back(); };
-}
+
+	container_type base() const { return container; };
+};
 
 // non-member func
 template <class T, class Con>
 	bool operator== (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container == rhs.container; };
+	{ return lhs.base() == rhs.base(); };
 template <class T, class Con>
 	bool operator!= (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container != rhs.container; };
+	{ return lhs.base() != rhs.base(); };
 template <class T, class Con>
 	bool operator<  (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container < rhs.container; };
+	{ return lhs.base() < rhs.base(); };
 template <class T, class Con>
 	bool operator<= (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container <= rhs.container; };
+	{ return lhs.base() <= rhs.base(); };
 template <class T, class Con>
 	bool operator>  (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container > rhs.container; };
+	{ return lhs.base() > rhs.base(); };
 template <class T, class Con>
 	bool operator>= (const stack<T,Con>& lhs, const stack<T,Con>& rhs)
-	{ return lhs.container >= rhs.container; };
+	{ return lhs.base() >= rhs.base(); };
 
 }
 #endif

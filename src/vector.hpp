@@ -241,7 +241,7 @@ public:
 	void pop_back()
 	{
 		// destroy & update _end
-		_alloc.destroy(_end--);
+		_alloc.destroy(--_end);
 	};
 	iterator insert (iterator position, const value_type& val)
 	{
@@ -300,12 +300,12 @@ public:
 			// 구간 모두 고칠것
 			construct_range_with_range(new_position + n, new_end, pos, _end);
 
-			//dedalloc & destroy
-			if (capacity() != 0)
-			{
-				std::cout << "destroy && dealloc while insert(fill)" << std::endl;
-				free_vector();
-			}
+			// //dedalloc & destroy
+			// if (capacity() != 0)
+			// {
+			// 	std::cout << "destroy && dealloc while insert(fill)" << std::endl;
+			// 	free_vector(); // <- segfault!
+			// }
 
 			// update member
 			_begin = new_begin;
@@ -348,8 +348,10 @@ public:
 			construct_range_with_range(new_begin, new_position, _begin, pos);
 			// insert
 			// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
-			pointer First = first.base();
-			pointer Last = last.base();
+			// InputIterator가 가리키는 데이터타입을 iterator_traits를 통해 알아내야 한다.
+			// 포인터타입의 예외케이스를 호환해주기 위해서이다.
+			typename ft::iterator_traits<InputIterator>::pointer First = first.base();
+			typename ft::iterator_traits<InputIterator>::pointer Last = last.base();
 			construct_range_with_range(new_position, new_position + n, First, Last);
 			construct_range_with_range(new_position + n, new_end, pos, _end);
 
