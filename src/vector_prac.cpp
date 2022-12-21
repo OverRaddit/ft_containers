@@ -5,125 +5,6 @@
 #define _vector ft::vector
 #define _ratio 10
 
-
-// void fill()
-// {
-// 	std::cout << "=====FILL=====" << std::endl;
-// 	ft::vector<int> v2(10,7);
-// 	for(int i=0;i<v2.size();i++)
-// 		std::cout << v2[i] << std::endl;
-// 	std::cout << "=====FILL=====" << std::endl;
-// 	std::cout << std::endl;
-// }
-
-// void range(ft::vector<int> &v)
-// {
-// 	std::cout << "=====RANGE=====" << std::endl;
-// 	ft::vector<int> v1(v.begin(), v.end());
-// 	for(int i=0;i<v1.size();i++)
-// 		std::cout << v1[i] << std::endl;
-// 	std::cout << "=====RANGE=====" << std::endl;
-// 	std::cout << std::endl;
-// }
-
-// void copy(ft::vector<int> &v)
-// {
-// 	std::cout << "=====COPY=====" << std::endl;
-// 	ft::vector<int> v1(v);
-// 	for(int i=0;i<v1.size();i++)
-// 		std::cout << v1[i] << std::endl;
-// 	std::cout << std::endl;
-
-// 	// DEEP COPY CHECK
-// 	v1[0] = 4242;
-// 	std::cout << "v1[0] : " << v1[0] << ", v[0]" << v[0] << std::endl;
-// 	std::cout << "=====COPY=====" << std::endl;
-// }
-
-// void assign(ft::vector<int> &v)
-// {
-// 	std::cout << "=====ASSIGN=====" << std::endl;
-// 		ft::vector<int> v1;
-// 		v1 = v;
-// 		for(int i=0;i<v1.size();i++)
-// 			std::cout << v1[i] << std::endl;
-// 	std::cout << "=====ASSIGN=====" << std::endl;
-// }
-
-// void test()
-// {
-// 	ft::vector<int> v(10, 0);
-// 	for(int i=0;i<10;i++)
-// 		v[i] = i + 1;
-
-// 	fill();
-// 	range(v);
-// 	copy(v);
-// 	assign(v);
-
-// }
-
-// #include "../system/system_methods.ipp"
-// #include "__service.ipp"
-
-// template <typename T>
-// std::vector<int> constructor_test(std::vector<T> vector) {
-//     std::vector<int> v;
-//     std::vector<int> tmp0(vector);
-//     std::vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
-//     tmp = tmp2;
-//     std::vector<int> tmp3(tmp);
-//     std::vector<int> tmp4(tmp.begin(), tmp.end());
-//     v.push_back(tmp4.size());
-//     v.push_back(tmp4.capacity());
-//     v.push_back(tmp[2]);
-//     v.push_back(tmp3[2]);
-//     v.push_back(tmp4[2]);
-//     try { std::vector<int> tmp5(-1, -1); }
-//     catch (std::exception &e) { v.push_back(1); }
-//     return v;
-// }
-
-// template <typename T>
-// std::vector<int> constructor_test(_vector<T> vector) {
-//     std::vector<int> v;
-// 	_vector<int> tmp0(vector);
-//     _vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
-//     tmp = tmp2;
-//     _vector<int> tmp3(tmp);
-//     _vector<int> tmp4(tmp.begin(), tmp.end());
-//     v.push_back(tmp4.size());
-//     v.push_back(tmp4.capacity());
-//     v.push_back(tmp[2]);
-//     v.push_back(tmp3[2]);
-//     v.push_back(tmp4[2]);
-//     try { _vector<int> tmp5(-1, -1); }
-//     catch (std::exception &e) { v.push_back(1); }
-//     return v;
-// }
-template <typename T>
-std::vector<int> insert_test_2(std::vector<T> vector) {
-    std::vector<int> v;
-    vector.assign(1000, 1);
-    vector.insert(vector.end() - 50, 4200 * _ratio , 2);
-    v.push_back(vector[2121]);
-    v.push_back(vector.size());
-    v.push_back(vector.capacity());
-    return v;
-}
-
-template <typename T>
-std::vector<int> insert_test_2(_vector<T> vector) {
-    std::vector<int> v;
-    vector.assign(1000, 1);
-    vector.insert(vector.end() - 50, 4200 * _ratio , 2);
-    v.push_back(vector[2121]);
-    v.push_back(vector.size());
-    v.push_back(vector.capacity());
-    return v;
-}
-
-
 class B {
 public:
     char *l;
@@ -136,6 +17,7 @@ public:
     virtual ~B() {
         delete this->l;
         this->l = nullptr;
+		std::cout << "B destructor!" << std::endl;
     };
 };
 
@@ -150,6 +32,7 @@ public:
     ~A() {
         delete this->l;
         this->l = nullptr;
+		std::cout << "A destructor!" << std::endl;
     };
 };
 
@@ -159,32 +42,31 @@ std::vector<int> insert_test_3(std::vector<T> vector) {
     std::vector<int> tmp;
     tmp.assign(2600 * _ratio, 1);
     vector.assign(4200 * _ratio, 1);
+	std::cout << "1" << std::endl;
     vector.insert(vector.end() - 1000 * _ratio, tmp.begin(), tmp.end());
+	std::cout << "2" << std::endl;
     v.push_back(vector[3]);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
-
+	std::cout << "3" << std::endl;
     std::unique_ptr<B> k2(new B(3));
     std::unique_ptr<B> k3(new B(4));
     std::unique_ptr<B> k4(new B(-1));
+	std::cout << "4" << std::endl;
     std::vector<A> vv;
     std::vector<B*> v1;
-
+	std::cout << "5" << std::endl;
     v1.push_back(&(*k2));
     v1.push_back(&(*k3));
     v1.push_back(&(*k4));
-    try {
-		vv.insert(vv.begin(), v1.begin(), v1.end());
-		std::cout << "DEBUG" << std::endl;
-	}
+	std::cout << "6" << std::endl;
+    try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
     catch (...) {
-		//std::cout << "[" << e.what() << "]" << std::endl;
+		std::cout << "-1" << std::endl;
         v.push_back(vv.size());
-		std::cout << "DEBUG2" << std::endl;
         v.push_back(vv.capacity());
-		std::cout << "DEBUG3" << std::endl;
     }
-	std::cout << "DEBUG4" << std::endl;
+	std::cout << "0" << std::endl;
     return v;
 }
 
@@ -194,27 +76,123 @@ std::vector<int> insert_test_3(_vector<T> vector) {
     _vector<int> tmp;
     tmp.assign(2600 * _ratio, 1);
     vector.assign(4200 * _ratio, 1);
+	std::cout << "1" << std::endl;
     vector.insert(vector.end() - 1000 * _ratio, tmp.begin(), tmp.end());
+	std::cout << "2" << std::endl;
     v.push_back(vector[3]);
     v.push_back(vector.size());
     v.push_back(vector.capacity());
-
+	std::cout << "3" << std::endl;
     std::unique_ptr<B> k2(new B(3));
     std::unique_ptr<B> k3(new B(4));
     std::unique_ptr<B> k4(new B(-1));
+	std::cout << "4" << std::endl;
     _vector<A> vv;
     _vector<B*> v1;
-
+	std::cout << "5" << std::endl;
     v1.push_back(&(*k2));
     v1.push_back(&(*k3));
     v1.push_back(&(*k4));
+	std::cout << "6" << std::endl;
     try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
-    catch (std::exception &e) {
-		std::cout << e.what() << std::endl;
+    catch (...) {
+		std::cout << "-1" << std::endl;
         v.push_back(vv.size());
         v.push_back(vv.capacity());
     }
+	std::cout << "0" << std::endl;
+    return v;
+}
 
+template <typename T>
+std::vector<int> swap_test(std::vector<T> vector) {
+    std::vector<int> v;
+    vector.assign(1100 * _ratio, 11);
+    std::vector<int> tmp(500 * _ratio, 5), tmp2(1000 * _ratio, 10), tmp3(1500 * _ratio, 15), tmp4(3000 * _ratio, 30);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    long *adr1 = reinterpret_cast<long *>(&vector);
+    long *adr2 = reinterpret_cast<long *>(&tmp);
+    vector.swap(tmp);
+    if (reinterpret_cast<long *>(&vector) == adr1 && reinterpret_cast<long *>(&tmp) == adr2)
+    	v.push_back(1);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    vector.swap(tmp3);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    std::swap(vector, tmp2);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    std::swap(vector, tmp4);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    return v;
+}
+
+template <typename T>
+std::vector<int> swap_test(_vector<T> vector) {
+    std::vector<int> v;
+    vector.assign(1100 * _ratio, 11);
+    _vector<int> tmp(500 * _ratio, 5), tmp2(1000 * _ratio, 10), tmp3(1500 * _ratio, 15), tmp4(3000 * _ratio, 30);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    long *adr1 = reinterpret_cast<long *>(&vector);
+    long *adr2 = reinterpret_cast<long *>(&tmp);
+    vector.swap(tmp);
+    if (reinterpret_cast<long *>(&vector) == adr1 && reinterpret_cast<long *>(&tmp) == adr2)
+    	v.push_back(1);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    vector.swap(tmp3);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    std::swap(vector, tmp2);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
+    std::swap(vector, tmp4);
+    v.push_back(vector[2]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+	std::cout << vector[2] << std::endl;
+	std::cout << vector.size() << std::endl;
+	std::cout << vector.capacity() << std::endl;
     return v;
 }
 
@@ -257,40 +235,12 @@ int main()
 
 	v1 = insert_test_3(v);
 
-	//v3 = insert_test_3(v2);
+	std::cout << "========\n";
 
-	// std::cout << "START2" << std::endl;
-	// std::vector<A> v;
-	// std::cout << "START3" << std::endl;
-	// A *a = new A();
-	// B *b = new B();
-	// //v.push_back(*a);
-	// //v.push_back(123);
-	// v.push_back(*a);
-	// std::cout << "1" << std::endl;
-	// //v.push_back(a); // <- segfault
-	// std::cout << "2" << std::endl;
-	// //v.push_back(*b); <- compile error
-	// std::cout << "3" << std::endl;
-	// //v.push_back(b); <- segfault
-	// std::cout << "START4" << std::endl;
-	// std::vector<B*> v2;
-	// v2.push_back(new B());
-	// v2.push_back(new B());
-	// v2.push_back(new B());
-	// std::cout << "START5" << std::endl;
-	// try
-	// {
-	// 	v.insert(v.begin(), v2.begin(), v2.end());
-	// 	/* code */
-	// }
-	// catch(...)
-	// {
-	// 	//std::cerr << e.what() << '\n';
-	// 	std::cout << "A";
-	// }
-	// std::cout << "B";
+	v3 = insert_test_3(v2);
 
+	while(1)
+	;
 }
 
 

@@ -64,8 +64,8 @@ public:
 		reserve(n);
 
 		// construct with value
-		construct_range_with_value(_begin, _end, val);
 		_end = _begin + n;
+		construct_range_with_value(_begin, _end, val);
 	};
 	template <class InputIterator>
 	vector (InputIterator first, InputIterator last,
@@ -105,8 +105,8 @@ public:
 		}
 
 		// construct with copy
-		construct_range_with_range(_begin, _end, x._begin, x._end);
 		_end = _begin + x.size();
+		construct_range_with_range(_begin, _end, x._begin, x._end);
 
 		return *this;
 	};
@@ -259,8 +259,11 @@ public:
 			_alloc.construct(new_position, val);
 			construct_range_with_range(new_position + 1, new_end, position.base(), _end);
 
-			// free
-			free_vector();
+			//dedalloc & destroy
+			if (capacity() != 0)
+			{
+				free_vector();
+			}
 
 			// update member
 			_begin = new_begin;
@@ -289,7 +292,7 @@ public:
 			// 생각해볼것....!
 			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
-			pointer new_begin = _alloc.allocate(size() * 2);
+			pointer new_begin = _alloc.allocate(new_cap);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (pos - _begin);
@@ -300,18 +303,16 @@ public:
 			// 구간 모두 고칠것
 			construct_range_with_range(new_position + n, new_end, pos, _end);
 
-			// //dedalloc & destroy
-			// if (capacity() != 0)
-			// {
-			// 	std::cout << "destroy && dealloc while insert(fill)" << std::endl;
-			// 	free_vector(); // <- segfault!
-			// }
+			//dedalloc & destroy
+			if (capacity() != 0)
+			{
+				free_vector();
+			}
 
 			// update member
 			_begin = new_begin;
 			_end = new_end;
 			_end_cap = new_end_cap;
-
 		}
 		else // 공간이 충분하다.
 		{
@@ -337,31 +338,46 @@ public:
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
+			std::cout << "not Enough space!" << std::endl;
 			// 생각해볼것....!
 			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
-			pointer new_begin = _alloc.allocate(size() * 2);
+			pointer new_begin = _alloc.allocate(new_cap);
 			pointer new_end = new_begin + size() + n;
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (pos - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, pos);
-			// insert
-			// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
-			// InputIterator가 가리키는 데이터타입을 iterator_traits를 통해 알아내야 한다.
-			// 포인터타입의 예외케이스를 호환해주기 위해서이다.
-			typename ft::iterator_traits<InputIterator>::pointer First = first.base();
-			typename ft::iterator_traits<InputIterator>::pointer Last = last.base();
-			construct_range_with_range(new_position, new_position + n, First, Last);
-			construct_range_with_range(new_position + n, new_end, pos, _end);
+			try
+			{
+				construct_range_with_range(new_begin, new_position, _begin, pos);
+				construct_range_with_range(new_position + n, new_end, pos, _end);
+				// insert
+				// construct_range_with_range함수를 쓰면 서로 다른 데이터를 가리키는 pointer를 사용하기 때문에 컴파일 에러가 발생한다.
+				// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
+				//construct_range_with_range(new_position, new_position + n, (pointer)first.base(), (pointer)last.base());
+				construct_range_with_range_templateVer(new_position, new_position + n, first, last);
 
-			// update member
-			_begin = new_begin;
-			_end = new_end;
-			_end_cap = new_end_cap;
+
+				// update member
+				_begin = new_begin;
+				_end = new_end;
+				_end_cap = new_end_cap;
+			}
+			catch(...)
+			{
+				std::cout << "Error while insert(range)! delete these elements..." << std::endl;
+				this->erase(iterator(new_position), iterator(new_position + n));
+			}
+
+			//dedalloc & destroy
+			if (capacity() != 0)
+			{
+				free_vector();
+			}
 		}
 		else // 공간이 충분하다.
 		{
+			std::cout << "Enough space!" << std::endl;
 			//shift
 			shift_right(pos, _end, pos + n, _end + n, _end);
 
@@ -379,13 +395,12 @@ public:
 	{
 		// position 원소 삭제
 		_alloc.destroy(position.base());
+		// shift left
 		// 삭제한 원소 다음 ~ 마지막원소 전부 1 칸씩 땡기기.
 		// 1 2 3 4 5
 		// 1 2 4 5
-		construct_range_with_range(position.base(), _end - 1, position.base() + 1, _end);
-
 		// 새 end로 최신화.
-		--_end;
+		construct_range_with_range(position.base(), --_end, position.base() + 1, _end);
 
 		return position;
 	};
@@ -451,13 +466,17 @@ public:
 		construct_range_with_range(new_begin, new_end, _begin, _end);
 
 		// delete old data
-		free_vector();
+		if (capacity() != 0)
+			free_vector();
 
 		// update member
 		_begin = new_begin;
 		_end = new_end;
 		_end_cap = new_end_cap;
 	};
+	// =========================================================================
+
+
 	// b~e 구간을 srcb~srce구간을 복사하여 초기화 한다.
 	// srce가 필요없다.
 	void construct_range_with_range(pointer b, pointer e, pointer srcb,
@@ -472,6 +491,22 @@ public:
 			_alloc.construct(b, *srcb++);
 		}
 	};
+	template <class InputIterator>
+	void construct_range_with_range_templateVer(pointer b, pointer e
+		, InputIterator srcb, InputIterator srce)
+	{
+		// if (e - b != srce - srcb)
+		// {
+		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
+		// }
+		for(;b != e;b++)
+		{
+			_alloc.construct(b, *srcb++);
+		}
+	};
+	// =========================================================================
+
+
 	// b~e구간을 val값으로 초기화한다.
 	void construct_range_with_value(pointer b, pointer e, value_type val = value_type())
 	{
@@ -513,25 +548,19 @@ public:
 		_end = 0;
 		_end_cap = 0;
 	}
-	// // destroy, dealloca range different...
-	// void free_range(pointer b, pointer e)
-	// {
-	// 	size_type	len = e - b;
-
-	// 	destroy_range(b, e);
-	// 	_alloc.deallocate(b, len);
-	// };
 	// srcb~srce => destb~deste, cap을 기준으로 대입/초기화가 갈린다.
 	void shift_right(pointer srcb, pointer srce, pointer destb, pointer deste,
 						pointer cap)
 	{
 		// 역방향으로 값을 넣어야 한다.
-		for(; srce != cap; srce--)
-			_alloc.construct(srce, *deste--);
+		// [ ) 기준을 역으로 접근하기 때문에 기존 방식과 아주약간 다른 것에 유의하자.
+		for(; srce != cap; --srce)
+			_alloc.construct(srce, *--deste);
 
-		for(; srce != srcb; srce--)
-			*srce = *deste--;
-	}
+		for(; srce != srcb; --srce)
+			*srce = *--deste;
+		*srce = *--deste;
+	};
 	// ==========================================================================================
 
 };
@@ -568,20 +597,7 @@ bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs)
 { return (lhs == rhs) || !(lhs < rhs); };
 
 template <class T, class Alloc>
-void swap (vector<T,Alloc>& x, vector<T,Alloc>& y)
-{
-	typename vector<T,Alloc>::allocator_type temp_begin = x._begin;
-	typename vector<T,Alloc>::allocator_type temp_end = x._end;
-	typename vector<T,Alloc>::allocator_type temp_end_cap = x._end_cap;
-
-	x._begin = y._begin;
-	x._end = y._end;
-	x._end_cap = y._end_cap;
-
-	y._begin = temp_begin;
-	y._end = temp_end;
-	y._end_cap = temp_end_cap;
-};
+void swap (vector<T,Alloc>& x, vector<T,Alloc>& y) { x.swap(y); };
 
 }
 #endif
