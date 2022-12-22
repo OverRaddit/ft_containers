@@ -7,8 +7,8 @@ namespace ft
 {
 template < class Key,                                     // map::key_type
 			class T,                                       // map::mapped_type
-			class Compare = less<Key>,                     // map::key_compare
-			class Alloc = allocator<pair<const Key,T> >    // map::allocator_type
+			class Compare = std::less<Key>,                     // map::key_compare
+			class Alloc = std::allocator<std::pair<const Key,T> >    // map::allocator_type
 			>
 struct map
 {
@@ -16,7 +16,6 @@ struct map
 	typedef T											mapped_type;
 	typedef ft::pair<const Key, T>						value_type;
 	typedef Compare										key_compare;
-	typedef asdf										value_compare; // ?
 	typedef Alloc										allocator_type;
 	typedef allocator_type::reference					reference;
 	typedef allocator_type::const_reference				const_reference;
@@ -27,8 +26,26 @@ struct map
 
 	typedef ft::reverse_iterator<iterator>				reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
-	typedef iterator_traits<iterator>::difference_type	difference_type;
-	typedef size_t										size_type; // ?
+	typedef allocator_type::difference_type				difference_type;
+	typedef allocator_type::size_type					size_type;
+
+	template <class Key, class T, class Compare, class Alloc>
+	class value_compare
+	: std::binary_function<value_type,value_type,bool>
+	{
+		friend class map; // ?
+	protected:
+		Compare comp;
+		value_compare (Compare c) : comp(c) {}  // constructed with map's comparison object
+	public:
+		typedef bool result_type;
+		typedef value_type first_argument_type;
+		typedef value_type second_argument_type;
+		bool operator() (const value_type& x, const value_type& y) const
+		{
+			return comp(x.first, y.first);
+		}
+	}
 
 	// member variable
 	allocator_type		_alloc;
@@ -38,7 +55,7 @@ struct map
 
 	// constructor & destructor
 	explicit map (const key_compare& comp = key_compare(),
-					const allocator_type& alloc = allocator_type());
+					const allocator_type& alloc = allocator_type()){};
 	template <class InputIterator>
 	map (InputIterator first, InputIterator last,
 			const key_compare& comp = key_compare(),
@@ -62,10 +79,16 @@ struct map
 	size_type max_size() const { return _alloc.max_size(); };
 
 	// element access
-	mapped_type& operator[] (const key_type& k);
+	mapped_type& operator[] (const key_type& k)
+	{
+		// pair중 first가 k와 일치하는 노드를 rbtree에서 찾는다.
+	};
 
 	// modifiers
-	pair<iterator,bool> insert (const value_type& val);
+	pair<iterator,bool> insert (const value_type& val)
+	{
+		// pair를 rbtree에 추가한다.
+	};
 	iterator insert (iterator position, const value_type& val);
 	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last);
@@ -79,7 +102,7 @@ struct map
 
 	// observers
 	key_compare key_comp() const;
-	value_compare value_comp() const;
+	value_compare value_comp() const { return value_compare(key_compare); };
 
 	// operations
 	iterator find (const key_type& k);

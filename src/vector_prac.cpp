@@ -1,7 +1,7 @@
 #include "vector.hpp"
 #include <exception>
 #include <iostream>
-
+#include <map>
 #define _vector ft::vector
 #define _ratio 10
 
@@ -94,6 +94,8 @@ std::vector<int> insert_test_3(_vector<T> vector) {
     v1.push_back(&(*k3));
     v1.push_back(&(*k4));
 	std::cout << "6" << std::endl;
+	std::cout << "sizeof A" << sizeof(A) << std::endl;
+	std::cout << "sizeof B*" << sizeof(B*) << std::endl;
     try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
     catch (...) {
 		std::cout << "-1" << std::endl;
@@ -227,21 +229,40 @@ int main()
 	// while(1)
 	// ;
 
-	std::vector<int> v;
-	std::vector<int> v1;
-	ft::vector<int> v2;
+	// std::vector<int> v;
+	// std::vector<int> v1;
+	// ft::vector<int> v2;
 
-	std::vector<int> v3;
+	// std::vector<int> v3;
 
-	v1 = insert_test_3(v);
+	// v1 = insert_test_3(v);
 
-	std::cout << "========\n";
+	// std::cout << "========\n";
 
-	v3 = insert_test_3(v2);
+	// v3 = insert_test_3(v2);
 
-	while(1)
-	;
+	// while(1)
+	// ;
+
+	// map
+	  std::map<char,int> mymap;
+
+	mymap['x']=1001;
+	mymap['y']=2002;
+	mymap['z']=3003;
+
+	std::cout << "mymap contains:\n";
+
+	std::pair<char,int> highest = *mymap.rbegin();          // last element
+
+	std::map<char,int>::iterator it = mymap.begin();
+	do {
+		std::cout << it->first << " => " << it->second << '\n';
+	} while ( mymap.value_comp()(*it++, highest) );
+
+	return 0;
 }
+
 
 
 //==========================================

@@ -34,11 +34,8 @@ public:
 	typedef typename allocator_type::reference			reference;
 	typedef typename allocator_type::const_reference	const_reference;
 	typedef typename allocator_type::pointer			pointer;
-	//typedef typename std::__base::pointer                 pointer;
 	typedef typename allocator_type::const_pointer		const_pointer;
 	//iterator 4
-	// iter, const_iter 타입정의 이해안됨.
-	//typedef pointer													iterator;
 	typedef ft::vector_iterator<T>									iterator;
 	typedef ft::vector_iterator<const T>							const_iterator;
 	typedef ft::reverse_iterator<iterator>							reverse_iterator;
@@ -226,23 +223,11 @@ public:
 		construct_range_with_value(_begin, _begin + n, val);
 		_end += n;
 	};
-	void push_back (const value_type& val)
-	{
-		// // if vector is FULL, append capacity * 2 with val
-		// if (_end == _end_cap)
-		// {
-		// 	reserve(size() * 2);
-		// }
 
-		// _alloc.construct(_end++, val);
-		insert(_end, val);
-	};
+	void push_back (const value_type& val) { insert(_end, val); };
 	// empty에서 호출하는건 정의되지않은 행동이다.
-	void pop_back()
-	{
-		// destroy & update _end
-		_alloc.destroy(--_end);
-	};
+	void pop_back(){ _alloc.destroy(--_end); };
+
 	iterator insert (iterator position, const value_type& val)
 	{
 		// if vector is full, append twice or greater
@@ -320,6 +305,8 @@ public:
 			shift_right(pos, _end, pos + n, _end + n, _end);
 
 			//insert
+			// destroy_range(pos, _end); // _end전까진 원소 destroy
+			// construct_range_with_value(pos, _end + n); // construct
 			for(; pos != _end ; pos++) // _end전까진 값 대입
 				*pos = val;
 			for(; pos != _end + n ; pos++) // _end+n까진 construct
@@ -334,6 +321,7 @@ public:
 					typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
 	{
 		size_type n = last - first;
+		//iterator_traits<InputIterator>::difference_type Itern = last - first;
 		pointer pos = position.base();
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
@@ -355,8 +343,18 @@ public:
 				// construct_range_with_range함수를 쓰면 서로 다른 데이터를 가리키는 pointer를 사용하기 때문에 컴파일 에러가 발생한다.
 				// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
 				//construct_range_with_range(new_position, new_position + n, (pointer)first.base(), (pointer)last.base());
-				construct_range_with_range_templateVer(new_position, new_position + n, first, last);
 
+				construct_range_with_range_templateVer(new_position, new_position + n, first, last);
+				// vector x(first, last);
+				// std::cout << "X created!" << std::endl;
+				// construct_range_with_range(new_position, new_position + n, x.begin().base(), x.end().base());
+				// std::cout << "construct_range_with_range!" << std::endl;
+
+				//dedalloc & destroy
+				if (capacity() != 0)
+				{
+					free_vector();
+				}
 
 				// update member
 				_begin = new_begin;
@@ -366,14 +364,11 @@ public:
 			catch(...)
 			{
 				std::cout << "Error while insert(range)! delete these elements..." << std::endl;
-				this->erase(iterator(new_position), iterator(new_position + n));
+				// destroy_range(new_position, new_position + n);
+				// construct_range_with_range(new_position, new_position + n, new_position + n, _end);
+				erase(iterator(new_position), iterator(new_position + n));
 			}
 
-			//dedalloc & destroy
-			if (capacity() != 0)
-			{
-				free_vector();
-			}
 		}
 		else // 공간이 충분하다.
 		{
@@ -499,7 +494,9 @@ public:
 		// {
 		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
 		// }
-		for(;b != e;b++)
+		size_type a=e-b;
+
+		for(;b != e || srcb != srce;b++)
 		{
 			_alloc.construct(b, *srcb++);
 		}
