@@ -5,6 +5,22 @@
 #define _vector ft::vector
 #define _ratio 10
 
+class ABC {
+public:
+    char *l;
+    int i;
+    ABC():l(nullptr), i(1) {};
+    ABC(const int &ex) {
+        this->i = ex;
+        this->l = new char('a');
+    };
+    virtual ~ABC() {
+        delete this->l;
+        this->l = nullptr;
+		std::cout << "B destructor!" << std::endl;
+    };
+};
+
 class B {
 public:
     char *l;
@@ -34,6 +50,11 @@ public:
         this->l = nullptr;
 		std::cout << "A destructor!" << std::endl;
     };
+};
+
+void test(A &a)
+{
+	std::cout << "hello" << std::endl;
 };
 
 template <typename T>
@@ -244,23 +265,48 @@ int main()
 	// while(1)
 	// ;
 
-	// map
-	  std::map<char,int> mymap;
+	// // map
+	//   std::map<char,int> mymap;
 
-	mymap['x']=1001;
-	mymap['y']=2002;
-	mymap['z']=3003;
+	// mymap['x']=1001;
+	// mymap['y']=2002;
+	// mymap['z']=3003;
 
-	std::cout << "mymap contains:\n";
+	// std::cout << "mymap contains:\n";
 
-	std::pair<char,int> highest = *mymap.rbegin();          // last element
+	// std::pair<char,int> highest = *mymap.rbegin();          // last element
 
-	std::map<char,int>::iterator it = mymap.begin();
-	do {
-		std::cout << it->first << " => " << it->second << '\n';
-	} while ( mymap.value_comp()(*it++, highest) );
+	// std::map<char,int>::iterator it = mymap.begin();
+	// do {
+	// 	std::cout << it->first << " => " << it->second << '\n';
+	// } while ( mymap.value_comp()(*it++, highest) );
 
-	return 0;
+	// return 0;
+
+	// ABC abc;
+	// ABC * ptr = new ABC();
+
+	int n = 0;
+	A *p;
+
+	// c==========
+	A x;
+	A* x_ptr = new A();
+
+	B* y = new B();
+
+	x = x_ptr;
+	x = y;
+	//x = ptr;
+	// ===========
+	// insert(x,y);  // x,y iter n,value
+
+	// test(&A);
+	// test(y);
+	// test(*y);
+
+	// abc = y;
+	// abc = x;
 }
 
 

@@ -366,7 +366,7 @@ public:
 				std::cout << "Error while insert(range)! delete these elements..." << std::endl;
 				// destroy_range(new_position, new_position + n);
 				// construct_range_with_range(new_position, new_position + n, new_position + n, _end);
-				erase(iterator(new_position), iterator(new_position + n));
+				//erase(iterator(new_position), iterator(new_position + n));
 			}
 
 		}

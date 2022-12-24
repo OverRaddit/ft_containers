@@ -5,9 +5,12 @@
 
 namespace ft
 {
+
+//vector_iterator::iterator_category
+
 // vector's iterator
 template <class T>
-struct vector_iterator //: public std::iterator<std::input_iterator_tag, T>
+struct vector_iterator //: public std::iterator<std::random_access_iterator_tag, T>
 {
 typedef typename std::iterator<std::random_access_iterator_tag, T>::value_type value_type;
 typedef typename std::iterator<std::random_access_iterator_tag, T>::difference_type difference_type;
