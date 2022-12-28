@@ -59,16 +59,28 @@ The algorithms taking _NodePtr are red black tree algorithms.  Those
 algorithms taking a parameter named __root should assume that __root
 points to a proper red black tree (unless otherwise specified).
 
+_NodePtr을 사용하는 알고리즘은 레드블랙트리 알고리즘이다.
+__root를 인자명으로 사용하는 알고리즘들은 __root가 레드블랙트리를 가리킨다고 가정한다.
+
 Each algorithm herein assumes that __root->__parent_ points to a non-null
 structure which has a member __left_ which points back to __root.  No other
 member is read or written to at __root->__parent_.
+
+각 알고리즘은 __root->__parent가 널이 아닌 구조체를 가진다고 가정하며 그것의 __left_인자로 다시 __root
+를 가리킬 수 있다.
+__root->__parent_에서 그외 다른 멤버는 읽거나 쓸 수 없다.
 
 __root->__parent_ will be referred to below (in comments only) as end_node.
 end_node->__left_ is an externably accessible lvalue for __root, and can be
 changed by node insertion and removal (without explicit reference to end_node).
 
+__root->__parent_ 는 아래에서 end_node로 언급된다.
+end_node->_left는 __root에 대해 외부적으로 액세스할 수 있는 lvalue값이며, 노드삽입/제거를 통해
+변경할 수 있다.
+
 All nodes (with the exception of end_node), even the node referred to as
 __root, have a non-null __parent_ field.
+end_node를 제외한 모든 노드, 심지어 __root도 null이 아닌 __parent_필드를 가진다.
 
 */
 
@@ -243,13 +255,13 @@ __tree_left_rotate(_NodePtr __x) _NOEXCEPT
 {
     _NodePtr __y = __x->__right_;
     __x->__right_ = __y->__left_;
-    if (__x->__right_ != nullptr)
+    if (__x->__right_ != nullptr) 				// nil이 아니면 부모노드정보를 부여해준다.
         __x->__right_->__set_parent(__x);
     __y->__parent_ = __x->__parent_;
     if (__tree_is_left_child(__x)) // __treeis
         __x->__parent_->__left_ = __y;
     else
-        __x->__parent_unsafe()->__right_ = __y;
+        __x->__parent_unsafe()->__right_ = __y; // 왜 __parent_unsafe()를 쓰지?
     __y->__left_ = __x;
     __x->__set_parent(__y);
 }
@@ -286,26 +298,26 @@ template <class _NodePtr>
 void
 __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 {
-    __x->__is_black_ = __x == __root;
-    while (__x != __root && !__x->__parent_unsafe()->__is_black_)
+    __x->__is_black_ = __x == __root;								// root로 추가될때 검은노드
+    while (__x != __root && !__x->__parent_unsafe()->__is_black_)	// x가 root가 아니면서 부모가 red라면 반복.
     {
         // __x->__parent_ != __root because __x->__parent_->__is_black == false
-        if (__tree_is_left_child(__x->__parent_unsafe()))
+        if (__tree_is_left_child(__x->__parent_unsafe()))			// x의 부모가 왼쪽자식일때
         {
-            _NodePtr __y = __x->__parent_unsafe()->__parent_unsafe()->__right_;
-            if (__y != nullptr && !__y->__is_black_)
+            _NodePtr __y = __x->__parent_unsafe()->__parent_unsafe()->__right_; // __y is uncle
+            if (__y != nullptr && !__y->__is_black_)	// 삼촌이 존재 && 레드노드일때 -> Recoloring
             {
                 __x = __x->__parent_unsafe();
-                __x->__is_black_ = true;
+                __x->__is_black_ = true;			// 부모를 검정으로
                 __x = __x->__parent_unsafe();
-                __x->__is_black_ = __x == __root;
-                __y->__is_black_ = true;
+                __x->__is_black_ = __x == __root;	// 조상이 root라면 검정, 아니면 빨강으로.
+                __y->__is_black_ = true;			// 삼촌을 검정으로
             }
-            else
+            else										// Restructering
             {
-                if (!__tree_is_left_child(__x))
+                if (!__tree_is_left_child(__x))		// __x가 우측자식인 경우
                 {
-                    __x = __x->__parent_unsafe();
+                    __x = __x->__parent_unsafe();	// __x의 부모기준 좌회전한다.
                     __tree_left_rotate(__x);
                 }
                 __x = __x->__parent_unsafe();
@@ -316,9 +328,9 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
                 break;
             }
         }
-        else
+        else														// x의 부모가 오른쪽자식일때
         {
-            _NodePtr __y = __x->__parent_unsafe()->__parent_->__left_;
+            _NodePtr __y = __x->__parent_unsafe()->__parent_->__left_; // __y is uncle
             if (__y != nullptr && !__y->__is_black_)
             {
                 __x = __x->__parent_unsafe();

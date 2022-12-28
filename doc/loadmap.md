@@ -1,10 +1,11 @@
 - vector
-	- allocator?
+	- [O]allocator
 		- [subject]You must use std::allocator.
 	- iterator
 		- iterator_traits : 반복자가 가리키는 요소에 대한 특성이 담긴 클래스.
 		- iterator -> 아근데 구현목록이 아니네. std를 그대로 쓰자.
-		- base iterator?
+		- vector의 iterator를 구현해줘야함...
+		- [X]const_iterator도 구현해줘야 할 것 같음
 		- reverse_iterator
 			- 사실상 base iterator를 거꾸로 접근하는 인터페이스만 만들면 된다?
 			- base iterator는 std 것을 쓰면 되겠지?
@@ -32,8 +33,19 @@
 - map
   - 어디서부터 구현해야 하지?
   - 보너스를 구현한다.
+  - tree
+    - size()
+    - begin(), end()
+    - constructor, destructor
+    - max_size()
+    - swap()
+    - clear()
+    - find(), count()
+    - lower_bound(), upper_bound()
+    - equal_range()
 
 - namespace ft
+- friend?
 
 - 아직 못구현한 것
   - equal
