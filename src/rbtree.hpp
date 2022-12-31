@@ -490,7 +490,7 @@ struct __tree_key_value_types
 	{
 		return _VSTD::addressof(__n);
 	}
-}
+};
 
 template <class _VoidPtr>
 struct __tree_node_base_types
