@@ -76,3 +76,14 @@ int main() {
 - 프로그램의 실행속도가 빨라진다.
 - 메모리의 낭비가 일어난다.
 -> 호출이 많이 일어나지 않는 함수 or 실행속도가빠른데 비해 함수의 호출시간이 부담스러울때 주로 사용.
+
+# NOEXCEPT
+
+void foo throw(); -> foo함수는 throw안에 인자들에 해당하는 에러객체만 throw할수있다.
+해당객체의 자식클래스도 가능하다.
+인자가 없으면 throw할수없다.
+
+noexcept() 한정자는 모든 면에서 throw()보다 강력해졌고,
+특히 C++11들의 Standard library들을 사용함에 있어, noexcept 한정자는 성능상의 추가 이득을 제공하기도 한다.
+
+http://egloos.zum.com/sweeper/v/3148916

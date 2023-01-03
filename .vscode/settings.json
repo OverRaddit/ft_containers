@@ -71,6 +71,7 @@
 		"iomanip": "cpp",
 		"set": "cpp",
 		"__functional_03": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"__undef_macros": "cpp"
 	}
 }

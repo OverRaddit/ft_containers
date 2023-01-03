@@ -36,6 +36,9 @@ public:
 	typedef ft::reverse_iterator<iterator>				reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
+	// 이 친구는 트리 노드의 value를 비교해주는 친구.
+	// key를 비교하는거랑 어떻게 다른지 헷갈림.
+	// value를 비교하는 방법내부가 key를 비교하는 것일수도?
 	template <class Key, class T, class Compare, class Alloc>
 	class value_compare
 	: std::binary_function<value_type,value_type,bool>

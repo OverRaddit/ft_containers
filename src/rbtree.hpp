@@ -3,6 +3,9 @@
 
 #include <memory>
 
+// 나중에 지울것.
+#include <map>
+
 template <class _Tp, class _NodePtr, class _DiffType>
 class _LIBCPP_TEMPLATE_VIS __rbtree_iterator;
 template <class _Tp, class _ConstNodePtr, class _DiffType>
@@ -10,6 +13,18 @@ class _LIBCPP_TEMPLATE_VIS __rbtree_const_iterator;
 
 template <class _Tp, class _Compare, class _Allocator>
 class __rbtree;
+
+template <class _Pointer> class __tree_end_node;
+template <class _VoidPtr> class __tree_node_base;
+template <class _Tp, class _VoidPtr> class __tree_node;
+
+template <class _Key, class _Value>
+struct __value_type;
+
+template <class _Allocator> class __map_node_destructor;
+template <class _TreeIterator> class _LIBCPP_TEMPLATE_VIS __map_iterator;
+template <class _TreeIterator> class _LIBCPP_TEMPLATE_VIS __map_const_iterator;
+
 //========================================================================================
 //            _                  _ _   _
 //      /\   | |                (_) | | |
@@ -22,10 +37,12 @@ class __rbtree;
 //========================================================================================
 
 // __x가 부모의 왼쪽자식인지 여부를 반환한다.
+// 왜 부모를 호출할때 parent_unsafe()를 사용하지 않았지?
+// 부모노드가 end포인터 타입이어도 __left_필드가 존재하기 때문이다.
 template <class _NodePtr>
 bool __tree_is_left_child(_NodePtr __x)
 {
-	return __x == __x->__parent_->__left_; // 왜 부모를 호출할때 parent_unsafe()를 사용하지 않았지?
+	return __x == __x->__parent_->__left_;
 }
 
 // __x를 루트로 하는 서브트리가 레드블랙트리를 만족하는 지 여부를 반환한다.
@@ -66,6 +83,7 @@ unsigned __tree_sub_invariant(_NodePtr __x)
 
 // 레드블랙트리의 루트노드인 __root가 레드블랙트리 인지 검사한다.
 // 왜 root의 부모에 end_node가 있고 end_node의 왼쪽자식에 root를 가지도록 정의했는지 의도를 모르겠다.
+// 여전히 모르겠다.
 template <class _NodePtr>
 bool __tree_invariant(_NodePtr __root)
 {
@@ -80,13 +98,14 @@ bool __tree_invariant(_NodePtr __root)
 	return __tree_sub_invariant(__root) != 0;
 }
 
-// 여기부터 inline _LIBCPP_INLINE_VISIBILITY, _NOEXCEPT가 사용된다. 왜?
+// 여기부터 inline _LIBCPP_INLINE_VISIBILITY,가 사용된다. 왜?
+// 컴파일러에 특정 옵션을 줌으로서, 효율을 높이기 위해서이다.
+// 자세한 내용까지는 아직 모르겠다.
 
 // ㅅㅓ브트리의 최좌측노드 반환, 이걸 어디에쓰지?
 template <class _NodePtr>
 inline _LIBCPP_INLINE_VISIBILITY
-	_NodePtr
-	__tree_min(_NodePtr __x) _NOEXCEPT
+_NodePtr __tree_min(_NodePtr __x)
 {
 	while (__x->__left_ != nullptr)
 		__x = __x->__left_;
@@ -96,8 +115,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 // ㅅㅓ브트리의 최우측노드 반환, 이걸 어디에쓰지?
 template <class _NodePtr>
 inline _LIBCPP_INLINE_VISIBILITY
-	_NodePtr
-	__tree_max(_NodePtr __x) _NOEXCEPT
+_NodePtr __tree_max(_NodePtr __x)
 {
 	while (__x->__right_ != nullptr)
 		__x = __x->__right_;
@@ -107,7 +125,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 // 트리에서 다음 값을 가진 노드 찾아서 반환
 // 최우측노드의 다음값이 end_node로 정의된 것이 인상적이다.
 template <class _NodePtr>
-_NodePtr __tree_next(_NodePtr __x) _NOEXCEPT
+_NodePtr __tree_next(_NodePtr __x)
 {
 	if (__x->__right_ != nullptr)
 		return __tree_min(__x->__right_);
@@ -122,8 +140,7 @@ _NodePtr __tree_next(_NodePtr __x) _NOEXCEPT
 // 메모리상에서 변화를 알고싶다.
 template <class _EndNodePtr, class _NodePtr>
 inline _LIBCPP_INLINE_VISIBILITY
-	_EndNodePtr
-	__tree_next_iter(_NodePtr __x) _NOEXCEPT
+_EndNodePtr __tree_next_iter(_NodePtr __x)
 {
 	if (__x->__right_ != nullptr)
 		return static_cast<_EndNodePtr>(__tree_min(__x->__right_)); // 왜 end_node로 형변환 하는거지?
@@ -136,8 +153,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 // 무조건 마지막노드만 end_node니까 이전노드를 찾을때는 end_node가 반환될 일이 없다는 전제로 작성한건가?
 template <class _NodePtr, class _EndNodePtr>
 inline _LIBCPP_INLINE_VISIBILITY
-	_NodePtr
-	__tree_prev_iter(_EndNodePtr __x) _NOEXCEPT
+_NodePtr __tree_prev_iter(_EndNodePtr __x)
 {
 	if (__x->__left_ != nullptr)
 		return __tree_max(__x->__left_);
@@ -149,7 +165,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 
 // 이 함수는 왜있는거지?? 의도를 모르겠다.
 template <class _NodePtr>
-_NodePtr __tree_leaf(_NodePtr __x) _NOEXCEPT
+_NodePtr __tree_leaf(_NodePtr __x)
 {
 	while (true)
 	{
@@ -169,7 +185,7 @@ _NodePtr __tree_leaf(_NodePtr __x) _NOEXCEPT
 }
 
 template <class _NodePtr>
-void __tree_left_rotate(_NodePtr __x) _NOEXCEPT
+void __tree_left_rotate(_NodePtr __x)
 {
 	_NodePtr __y = __x->__right_;
 	__x->__right_ = __y->__left_;
@@ -185,7 +201,7 @@ void __tree_left_rotate(_NodePtr __x) _NOEXCEPT
 }
 
 template <class _NodePtr>
-void __tree_right_rotate(_NodePtr __x) _NOEXCEPT
+void __tree_right_rotate(_NodePtr __x)
 {
 	_NodePtr __y = __x->__left_;
 	__x->__left_ = __y->__right_;
@@ -211,7 +227,7 @@ void __tree_right_rotate(_NodePtr __x) _NOEXCEPT
 // __x가 __root와 분리된 경우 이해가 안됨..
 // postcond 이해가 안됨..
 template <class _NodePtr>
-void __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
+void __tree_balance_after_insert(_NodePtr __root, _NodePtr __x)
 {
 	__x->__is_black_ = __x == __root;							  // 삽입되는 노드가 루트라면 검정으로 추가 그외 빨강으로 추가한다.
 	while (__x != __root && !__x->__parent_unsafe()->__is_black_) // double red를 검사한다.
@@ -283,7 +299,7 @@ void __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 // 시간없으니 바로 함수읽겠음.
 // x,y,z,w가 각각 무슨역할인지 잘 모르겠다.
 template <class _NodePtr>
-void __tree_remove(_NodePtr __root, _NodePtr __z) _NOEXCEPT
+void __tree_remove(_NodePtr __root, _NodePtr __z)
 {
 	// __z는 tree에서 제거되지만 destruct, dealloc은 안해준다.
 	// __y is either __z, or if __z has two children, __tree_next(__z).
@@ -608,25 +624,138 @@ public:
 	friend class __map_node_destructor; // 얘를 왜 해줘야 하는지 모르겠다.
 };
 
-// 줄맞춤하고싶은데 저장하면 자동완성기능처럼 줄맞춤이 사라진다....;;;;
+// __tree_iterator 클래스
 template <class _Tp, class _NodePtr, class _DiffType>
 class __tree_iterator
 {
-	typedef __tree_node_types<_NodePtr> _NodeTypes;
-	typedef _NodePtr __node_pointer;
-	typedef typename _NodeTypes::__node_base_pointer __node_base_pointer;
-	typedef typename _NodeTypes::__end_node_pointer __end_node_pointer;
-	typedef typename _NodeTypes::__iter_pointer __iter_pointer;
-	typedef pointer_traits<__node_pointer> __pointer_traits;
+	// 아직 __tree_node_types에 대해 잘 모르겠다.
+	typedef __tree_node_types<_NodePtr>							_NodeTypes;
+	typedef _NodePtr											__node_pointer;
+	typedef typename _NodeTypes::__node_base_pointer			__node_base_pointer;
+	typedef typename _NodeTypes::__end_node_pointer				__end_node_pointer;
+	typedef typename _NodeTypes::__iter_pointer					__iter_pointer;
+	typedef pointer_traits<__node_pointer>						__pointer_traits;
 
-	__iter_pointer __ptr;
+	__iter_pointer __ptr_;
 
 public:
-	typedef bidirectional_iterator_tag iterator_category;
-	typedef _Tp value_type;
-	typedef _DiffType difference_type;
-	typedef value_type &reference;
-	typedef typename _NodeTypes::__node_value_type_pointer pointer;
+	typedef bidirectional_iterator_tag							iterator_category;
+	typedef _Tp													value_type;
+	typedef _DiffType											difference_type;
+	typedef value_type&											reference;
+	typedef typename _NodeTypes::__node_value_type_pointer		pointer;
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_iterator(){}
+
+	_LIBCPP_INLINE_VISIBILITY reference operator*() const
+	{ return __get_np()->__value_; }
+
+	// __pointer_traits는 또 뭐야;;;
+	_LIBCPP_INLINE_VISIBILITY pointer operator->() const
+	{ return __pointer_traits<pointer>::pointer_to(__get_np()->__value_); }
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_iterator& operator++() {
+		__ptr_ = static_cast<__iter_pointer>(
+			__tree_next_iter<__end_node_pointer>(static_cast<__node_base_pointer>(__ptr_))
+		);
+		return *this;
+	}
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_iterator operator++(int)
+	{ __tree_iterator __t(*this); ++(*this); return __t; }
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_iterator& operator--() {
+		__ptr_ = static_cast<__iter_pointer>(
+			__tree_prev_iter<__node_base_pointer>(static_cast<__end_node_pointer>(__ptr_))
+		);
+		return *this;
+	}
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_iterator operator--(int)
+	{ __tree_iterator __t(*this); --(*this); return __t; }
+
+	bool operator==(const __tree_iterator& __x, const __tree_iterator& __y)
+	{return __x.__ptr_ == __y.__ptr_;}
+	bool operator!=(const __tree_iterator& __x, const __tree_iterator& __y)
+	{return !(__x == __y);}
+
+private:
+	__tree_iterator(__node_pointer __p) : __ptr_(__p) {}
+	__tree_iterator(__end_node_pointer __p) : __ptr_(__p) {}
+	__node_pointer __get_np() const { return static_cast<__node_pointer>(__ptr_); }
+};
+
+// __tree_iterator 클래스
+template <class _Tp, class _NodePtr, class _DiffType>
+class __tree_const_iterator
+{
+	// 아직 __tree_node_types에 대해 잘 모르겠다.
+	typedef __tree_node_types<_NodePtr>							_NodeTypes;
+	typedef _NodePtr											__node_pointer;
+	typedef typename _NodeTypes::__node_base_pointer			__node_base_pointer;
+	typedef typename _NodeTypes::__end_node_pointer				__end_node_pointer;
+	typedef typename _NodeTypes::__iter_pointer					__iter_pointer;
+	typedef pointer_traits<__node_pointer>						__pointer_traits;
+
+	__iter_pointer __ptr_;
+
+public:
+	typedef bidirectional_iterator_tag								iterator_category;
+	typedef _Tp														value_type;
+	typedef _DiffType												difference_type;
+	typedef value_type&												reference;
+	typedef typename _NodeTypes::__const_node_value_type_pointer	pointer;
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_const_iterator(__non_const_iterator __p)
+		: __ptr_(__p.__ptr_){}
+
+	_LIBCPP_INLINE_VISIBILITY reference operator*() const
+	{ return __get_np()->__value_; }
+
+	// ㅇㅕ기서는 __pointer_traits 가 아니라 pointer_traits다.
+	_LIBCPP_INLINE_VISIBILITY pointer operator->() const
+	{ return pointer_traits<pointer>::pointer_to(__get_np()->__value_); }
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_const_iterator& operator++() {
+		__ptr_ = static_cast<__iter_pointer>(
+			__tree_next_iter<__end_node_pointer>(static_cast<__node_base_pointer>(__ptr_))
+		);
+		return *this;
+	}
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_const_iterator operator++(int)
+	{ __tree_const_iterator __t(*this); ++(*this); return __t; }
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_const_iterator& operator--() {
+		__ptr_ = static_cast<__iter_pointer>(
+			__tree_prev_iter<__node_base_pointer>(static_cast<__end_node_pointer>(__ptr_))
+		);
+		return *this;
+	}
+
+	_LIBCPP_INLINE_VISIBILITY
+	__tree_const_iterator operator--(int)
+	{ __tree_const_iterator __t(*this); --(*this); return __t; }
+
+	bool operator==(const __tree_const_iterator& __x, const __tree_const_iterator& __y)
+	{return __x.__ptr_ == __y.__ptr_;}
+	bool operator!=(const __tree_const_iterator& __x, const __tree_const_iterator& __y)
+	{return !(__x == __y);}
+
+private:
+	__tree_const_iterator(__node_pointer __p) : __ptr_(__p) {}
+	__tree_const_iterator(__end_node_pointer __p) : __ptr_(__p) {}
+	__node_pointer __get_np() const { return static_cast<__node_pointer>(__ptr_); }
+
 };
 
 // =============================================================================
@@ -634,12 +763,14 @@ public:
 template <class _Tp, class _Compare, class _Allocator>
 class __rbtree
 {
-private:
-	/* data */
 public:
-	typedef _Allocator allocator_type;
-	typedef _Tp value_type;
-	typedef typename allocator_type::pointer pointer;
+	typedef _Tp								value_type;
+	typedef _Allocator						allocator_type;
+	typedef typename						allocator_type::pointer pointer;
+
+private:
+	typedef std::allocator_traits<allocator_type>	__alloc_traits;
+
 
 protected:
 	//==============================================================================
@@ -848,7 +979,7 @@ public:
 	// Precondition:  __x != nullptr.
 	template <class _NodePtr>
 	_NodePtr
-	__tree_leaf(_NodePtr __x) _NOEXCEPT
+	__tree_leaf(_NodePtr __x)
 	{
 		while (true)
 		{
