@@ -1,6 +1,8 @@
 #ifndef MAKE_PAIR
 #define MAKE_PAIR
 
+# include "pair.hpp"
+
 namespace ft
 {
 

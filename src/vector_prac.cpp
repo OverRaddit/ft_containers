@@ -1,8 +1,11 @@
 #include "vector.hpp"
+#include "map.hpp"
 #include <exception>
 #include <iostream>
 #include <map>
 #define _vector ft::vector
+#define _map ft::map
+#define _make_pair ft::make_pair
 #define _ratio 10
 
 class ABC {
@@ -219,124 +222,146 @@ std::vector<int> swap_test(_vector<T> vector) {
     return v;
 }
 
-int main()
-{
-	std::cout << "START" << std::endl;
-	// //test();
-	// //exit(run_vector_unit_test<int>("constructor", constructor_test, constructor_test));
+// int main()
+// {
+// 	std::cout << "START" << std::endl;
+// 	// //test();
+// 	// //exit(run_vector_unit_test<int>("constructor", constructor_test, constructor_test));
 
-	// ft::vector<int> v(20, 42);
-	// ft::vector<int> v2(5, 777);
+// 	// ft::vector<int> v(20, 42);
+// 	// ft::vector<int> v2(5, 777);
 
-	// std::cout << v.size() << "/ " << v.capacity() << std::endl;
-	// for(int i=0;i<20;i++)
-	// {
+// 	// std::cout << v.size() << "/ " << v.capacity() << std::endl;
+// 	// for(int i=0;i<20;i++)
+// 	// {
 
-	// 	//std::cout << i << " : " << v[i] << std::endl;
-	// 	std::cout << i << " : " << v.at(i) << std::endl;
-	// }
+// 	// 	//std::cout << i << " : " << v[i] << std::endl;
+// 	// 	std::cout << i << " : " << v.at(i) << std::endl;
+// 	// }
 
-	// v.push_back(4242);
-	// v.push_back(4242);
-	// v.push_back(4242);
+// 	// v.push_back(4242);
+// 	// v.push_back(4242);
+// 	// v.push_back(4242);
 
-	// for(int i=0;i<v.size();i++)
-	// 	std::cout << i << " : " << v.at(i) << std::endl;
+// 	// for(int i=0;i<v.size();i++)
+// 	// 	std::cout << i << " : " << v.at(i) << std::endl;
 
-	// std::cout << v.size() << "/ " << v.capacity() << std::endl;
+// 	// std::cout << v.size() << "/ " << v.capacity() << std::endl;
 
-	// std::cout << "LEAK TESTING..." << std::endl;
-	// // leaks
-	// while(1)
-	// ;
+// 	// std::cout << "LEAK TESTING..." << std::endl;
+// 	// // leaks
+// 	// while(1)
+// 	// ;
 
-	// std::vector<int> v;
-	// std::vector<int> v1;
-	// ft::vector<int> v2;
+// 	// std::vector<int> v;
+// 	// std::vector<int> v1;
+// 	// ft::vector<int> v2;
 
-	// std::vector<int> v3;
+// 	// std::vector<int> v3;
 
-	// v1 = insert_test_3(v);
+// 	// v1 = insert_test_3(v);
 
-	// std::cout << "========\n";
+// 	// std::cout << "========\n";
 
-	// v3 = insert_test_3(v2);
+// 	// v3 = insert_test_3(v2);
 
-	// while(1)
-	// ;
+// 	// while(1)
+// 	// ;
 
-	// // map
-	//   std::map<char,int> mymap;
+// 	// // map
+// 	//   std::map<char,int> mymap;
 
-	// mymap['x']=1001;
-	// mymap['y']=2002;
-	// mymap['z']=3003;
+// 	// mymap['x']=1001;
+// 	// mymap['y']=2002;
+// 	// mymap['z']=3003;
 
-	// std::cout << "mymap contains:\n";
+// 	// std::cout << "mymap contains:\n";
 
-	// std::pair<char,int> highest = *mymap.rbegin();          // last element
+// 	// std::pair<char,int> highest = *mymap.rbegin();          // last element
 
-	// std::map<char,int>::iterator it = mymap.begin();
-	// do {
-	// 	std::cout << it->first << " => " << it->second << '\n';
-	// } while ( mymap.value_comp()(*it++, highest) );
+// 	// std::map<char,int>::iterator it = mymap.begin();
+// 	// do {
+// 	// 	std::cout << it->first << " => " << it->second << '\n';
+// 	// } while ( mymap.value_comp()(*it++, highest) );
 
-	// return 0;
+// 	// return 0;
 
-	// ABC abc;
-	// ABC * ptr = new ABC();
+// 	// ABC abc;
+// 	// ABC * ptr = new ABC();
 
-	int n = 0;
-	A *p;
+// 	int n = 0;
+// 	A *p;
 
-	// c==========
-	A x;
-	A* x_ptr = new A();
+// 	// c==========
+// 	A x;
+// 	A* x_ptr = new A();
 
-	B* y = new B();
+// 	B* y = new B();
 
-	x = x_ptr;
-	x = y;
-	//x = ptr;
-	// ===========
-	// insert(x,y);  // x,y iter n,value
+// 	x = x_ptr;
+// 	x = y;
+// 	//x = ptr;
+// 	// ===========
+// 	// insert(x,y);  // x,y iter n,value
 
-	// test(&A);
-	// test(y);
-	// test(*y);
+// 	// test(&A);
+// 	// test(y);
+// 	// test(*y);
 
-	// abc = y;
-	// abc = x;
+// 	// abc = y;
+// 	// abc = x;
+// }
+
+template <class T, class V>
+std::vector<int> copy_constructor_test(std::map<T, V> mp) {
+
+    std::vector<int> v;
+
+    for (int i = 0, j = 10; i < 30 * _ratio; ++i, ++j) {
+        mp.insert(std::make_pair(i, j));
+    }
+    std::map<int, int> mp2(mp.begin(), mp.end());
+    std::map<int, int>::iterator it = mp2.begin();
+    for (int i = 0; i < 30 * _ratio; ++i, it++) {
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    return v;
 }
 
+template <class T, class V>
+std::vector<int> copy_constructor_test(_map<T, V> mp) {
 
+    std::vector<int> v;
 
-//==========================================
+    for (int i = 0, j = 10; i < 30 * _ratio; ++i, ++j) {
+        mp.insert(_make_pair(i, j));
+    }
+    _map<int, int> mp2(mp.begin(), mp.end());
+    _map<int, int>::iterator it = mp2.begin();
+    for (int i = 0; i < 30 * _ratio; ++i, it++) {
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    return v;
+}
 
-// std::iterator example
-// #include <iostream>     // std::cout
-// #include <iterator>     // std::iterator, std::input_iterator_tag
+int main()
+{
+	std::map<int, int> one;
+	ft::map<int, int> two;
 
-// class MyIterator : public std::iterator<std::input_iterator_tag, int>
+	copy_constructor_test(one);
+	copy_constructor_test(two);
+    //exit(run_map_unit_test<int, int>("constructor(InputIt)", copy_constructor_test, copy_constructor_test));
+}
+
+// int main()
 // {
-//   int* p;
-// public:
-//   MyIterator(int* x) :p(x) {}
-//   MyIterator(const MyIterator& mit) : p(mit.p) {}
-//   MyIterator& operator++() {++p;return *this;}
-//   MyIterator operator++(int) {MyIterator tmp(*this); operator++(); return tmp;}
-//   bool operator==(const MyIterator& rhs) const {return p==rhs.p;}
-//   bool operator!=(const MyIterator& rhs) const {return p!=rhs.p;}
-// //   int& operator*() {return *p;}
-// };
+// 	//_map<int, int>::iterator it;
+// 	std::map<int, int>::iterator it;
 
-// int main () {
-//   int numbers[]={10,20,30,40,50};
-//   MyIterator from(numbers);
-//   MyIterator until(numbers+5);
-//   for (MyIterator it=from; it!=until; it++)
-//     std::cout << *it << ' ';
-//   std::cout << '\n';
+//     it->first = 1;
 
-//   return 0;
+//     return (0);
 // }
