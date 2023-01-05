@@ -351,9 +351,17 @@ int main()
 	std::map<int, int> one;
 	ft::map<int, int> two;
 
-	copy_constructor_test(one);
-	copy_constructor_test(two);
-    //exit(run_map_unit_test<int, int>("constructor(InputIt)", copy_constructor_test, copy_constructor_test));
+	// copy_constructor_test(one);
+	// copy_constructor_test(two);
+
+	one[1] = 1;
+	one[2] = 2;
+	one[3] = 3;
+
+	// constructor
+	ft::map<int, int> copy(one.begin(), one.end());
+	std::cout << "size: " << copy.size() << std::endl;
+
 }
 
 // int main()

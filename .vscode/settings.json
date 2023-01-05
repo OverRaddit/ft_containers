@@ -73,6 +73,8 @@
 		"__functional_03": "cpp",
 		"filesystem": "cpp",
 		"__undef_macros": "cpp",
-		"__cxx_version": "cpp"
+		"__cxx_version": "cpp",
+		"list": "cpp",
+		"queue": "cpp"
 	}
 }

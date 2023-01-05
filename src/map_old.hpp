@@ -11,33 +11,127 @@
 namespace ft
 {
 
-// template <class _TreeIterator>
-// class __map_iterator
-// {
-// 	typedef typename _TreeIterator::_NodeTypes NodeTypes;
-// 	typedef typename _TreeIterator::__pointer_traits __pointer_traits;
+//  /$$$$$$ /$$$$$$$$ /$$$$$$$$ /$$$$$$$   /$$$$$$  /$$$$$$$$ /$$$$$$  /$$$$$$$
+// |_  $$_/|__  $$__/| $$_____/| $$__  $$ /$$__  $$|__  $$__//$$__  $$| $$__  $$
+//   | $$     | $$   | $$      | $$  \ $$| $$  \ $$   | $$  | $$  \ $$| $$  \ $$
+//   | $$     | $$   | $$$$$   | $$$$$$$/| $$$$$$$$   | $$  | $$  | $$| $$$$$$$/
+//   | $$     | $$   | $$__/   | $$__  $$| $$__  $$   | $$  | $$  | $$| $$__  $$
+//   | $$     | $$   | $$      | $$  \ $$| $$  | $$   | $$  | $$  | $$| $$  \ $$
+//  /$$$$$$   | $$   | $$$$$$$$| $$  | $$| $$  | $$   | $$  |  $$$$$$/| $$  | $$
+// |______/   |__/   |________/|__/  |__/|__/  |__/   |__/   \______/ |__/  |__/
 
-// 	_TreeIterator __i_;
+template <class _TreeIterator>
+class __map_iterator
+{
+	typedef typename _TreeIterator::_NodeTypes				_NodeTypes;
+	typedef typename _TreeIterator::__pointer_traits		__pointer_traits;
 
-// public:
-// 	typedef bidirectional_iterator_tag iterator_category;
-// 	typedef typename _NodeTypes::__map_value_type value_type;
-// 	typedef typename _TreeIterator::difference_type difference_type;
-// 	typedef value_type &reference;
-// 	typedef typename _NodeTypes::__map_value_type_pointer pointer;
-// };
+	_TreeIterator __i_;
+
+public:
+	typedef bidirectional_iterator_tag						iterator_category;
+	typedef typename _NodeTypes::__map_value_type			value_type;
+	typedef typename _TreeIterator::difference_type			difference_type;
+	typedef value_type&										reference;
+	typedef typename _NodeTypes::__map_value_type_pointer	pointer;
+
+	__map_iterator() {}
+	__map_iterator(_TreeIterator __i) : __i_(__i) {}
+
+	reference operator*() const { return __i_->__get_value(); }
+	pointer operator->() const { return std::pointer_traits<pointer>::pointer_to(__i_->get_value()); }
+
+	__map_iterator& operator++() {++__i_; return *this;}
+	__map_iterator operator++(int)
+	{
+		__map_iterator __t(*this);
+		++(*this);
+		return __t;
+	}
+
+	__map_iterator& operator--() {--__i_; return *this;}
+	__map_iterator operator--(int)
+	{
+		__map_iterator __t(*this);
+		--(*this);
+		return __t;
+	}
+
+	friend _LIBCPP_INLINE_VISIBILITY
+	bool operator==(const __map_iterator& __x, const __map_iterator& __y)
+		{ return __x.__i_ == __y.__i_; }
+
+	friend _LIBCPP_INLINE_VISIBILITY
+	bool operator!=(const __map_iterator& __x, const __map_iterator& __y)
+		{ return __x.__i_ != __y.__i_; }
+
+	template <class, class, class, class> friend class _LIBCPP_TEMPLATE_VIS map;
+	template <class> friend class _LIBCPP_TEMPLATE_VIS __map_const_iterator;
+};
+
+template <class _TreeIterator>
+class __map_const_iterator
+{
+	typedef typename _TreeIterator::_NodeTypes _NodeTypes;
+	typedef typename _TreeIterator::__pointer_traits __pointer_traits;
+
+	_TreeIterator __i_;
+
+public:
+	typedef bidirectional_iterator_tag							iterator_category;
+	typedef typename _NodeTypes::__map_value_type				value_type;
+	typedef typename _TreeIterator::difference_type				difference_type;
+	typedef const value_type&									reference;
+	typedef typename _NodeTypes::__const_map_value_type_pointer	pointer;
+
+	__map_const_iterator() {}
+	__map_const_iterator(_TreeIterator __i) : __i_(__i) {}
+	__map_const_iterator(__map_iterator<
+		typename _TreeIterator::__non_const_iterator> __i)
+		: __i_(__i) {}
+
+	reference operator*() const { return __i_->__get_value(); }
+	pointer operator->() const { return std::pointer_traits<pointer>::pointer_to(__i_->get_value()); }
+
+	__map_const_iterator& operator++() {++__i_; return *this;}
+	__map_const_iterator operator++(int)
+	{
+		__map_const_iterator __t(*this);
+		++(*this);
+		return __t;
+	}
+
+	__map_const_iterator& operator--() {--__i_; return *this;}
+	__map_const_iterator operator--(int)
+	{
+		__map_const_iterator __t(*this);
+		--(*this);
+		return __t;
+	}
+
+	friend _LIBCPP_INLINE_VISIBILITY
+	bool operator==(const __map_const_iterator& __x, const __map_const_iterator& __y)
+		{ return __x.__i_ == __y.__i_; }
+
+	friend _LIBCPP_INLINE_VISIBILITY
+	bool operator!=(const __map_const_iterator& __x, const __map_const_iterator& __y)
+		{ return __x.__i_ != __y.__i_; }
+
+	template <class, class, class, class> friend class _LIBCPP_TEMPLATE_VIS map;
+	template <class, class, class> friend class _LIBCPP_TEMPLATE_VIS __tree_const_iterator;
+};
 
 template <class Key,										   // map::key_type
 			class T,											   // map::mapped_type
 			class Compare = std::less<Key>,					   // map::key_compare
-			class Alloc = std::allocator<ft::pair<const Key, T> > // map::allocator_type
+			class Alloc = std::allocator<std::pair<const Key, T> > // map::allocator_type
 			>
 class map
 {
 public:
 	typedef Key														key_type;
 	typedef T														mapped_type;
-	typedef ft::pair<const Key, T>									value_type;
+	typedef std::pair<const Key, T>									value_type;
 	typedef Compare													key_compare;
 	typedef Alloc													allocator_type;
 	typedef typename allocator_type::reference						reference;
@@ -66,10 +160,10 @@ private:
 	__base __tree;
 
 public:
-	typedef typename __base::iterator						iterator;
-	typedef typename __base::const_iterator					const_iterator;
-	typedef ft::reverse_iterator<iterator>					reverse_iterator;
-	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+	typedef __map_iterator<typename __base::iterator>				iterator;
+	typedef __map_const_iterator<typename __base::const_iterator>	const_iterator;
+	typedef ft::reverse_iterator<iterator>									reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>							const_reverse_iterator;
 
 	// constructor & destructor
 	explicit map(const key_compare &comp = key_compare(),
@@ -125,7 +219,7 @@ public:
 	// INSERT
 	// - 삽입할 원소의 키가 이미 맵에 존재하면, 해당 원소의 이터레이터를 반환합니다.
 	// - 존재하지않을시, 삽입후 size를 늘려줍니다.
-	ft::pair<iterator, bool> insert(const value_type &__v)
+	std::pair<iterator, bool> insert(const value_type &__v)
 	{
 		return __tree.__insert_unique(__v);
 	};
@@ -170,8 +264,8 @@ public:
 	const_iterator lower_bound(const key_type &__k) const { return __tree.lower_bound(__k); };
 	iterator upper_bound(const key_type &__k) { return __tree.upper_bound(__k); };
 	const_iterator upper_bound(const key_type &__k) const { return __tree.upper_bound(__k); };
-	pair<const_iterator, const_iterator> equal_range(const key_type &__k) const { return __tree.equal_range(__k); };
-	pair<iterator, iterator> equal_range(const key_type &__k) { return __tree.equal_range(__k); };
+	std::pair<const_iterator, const_iterator> equal_range(const key_type &__k) const { return __tree.equal_range(__k); };
+	std::pair<iterator, iterator> equal_range(const key_type &__k) { return __tree.equal_range(__k); };
 	// 1 2 3 4 5 6 7 8 9 [k = 5]
 	// [O]allocator
 	allocator_type get_allocator() const { return allocator_type(__tree._alloc()); };
@@ -210,6 +304,11 @@ bool operator<= (const map<Key,T,Compare,Alloc>& __l,
 template <class Key, class T, class Compare, class Alloc>
 void swap (map<Key,T,Compare,Alloc>& __x, map<Key,T,Compare,Alloc>& __y)
 { __x.swap(__y); };
+
+
+
+
+
 
 }
 
