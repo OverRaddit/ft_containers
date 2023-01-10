@@ -50,7 +50,7 @@ template <class Key, class Value, class KeyOfValue, class Compare>
 class rb_tree {
 protected:
     enum color_type {red, black};
-    typedef Allocator<void>::pointer void_pointer;
+    typedef Allocator<void>::pointer void_pointer; // void*
     struct rb_tree_node;
     friend rb_tree_node;
     struct rb_tree_node {
@@ -499,6 +499,7 @@ __insert(link_type x, link_type y, const Value& v) {
     ++node_count;
     link_type z = get_node();
     construct(value_allocator.address(value(z)), v);
+	// ???
     if (y == header || x != NIL || key_compare(KeyOfValue()(v), key(y))) {
         left(y) = z;  // also makes leftmost() = z when y == header
         if (y == header) {

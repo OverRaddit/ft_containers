@@ -6,9 +6,8 @@
 namespace ft
 {
 
-//vector_iterator::iterator_category
-
 // vector's iterator
+// 왜 상속받는 건지, 무슨 효과가 있는건지 잘 모르겠다.
 template <class T>
 struct vector_iterator : public std::iterator<std::random_access_iterator_tag, T>
 {
@@ -21,7 +20,7 @@ typedef typename std::iterator<std::random_access_iterator_tag, T>::iterator_cat
 pointer p;
 
 pointer base() const { return p; }
-//pointer base() { return p; }
+pointer base() { return p; }
 
 vector_iterator() :p(0) {}
 vector_iterator(pointer x) :p(x) {}

@@ -42,8 +42,7 @@ template <class Key, class Value, class KeyOfValue, class Compare, class _Alloca
 class rb_tree {
 protected:
 	enum color_type {red, black};
-	typedef _Allocator::rebind<void>::other::pointer	void_pointer;
-	// 왜 선언, friend선언, 구현순으로 다 적어놓은거지?
+	typedef _Allocator::rebind<void>::other::pointer	void_pointer; // 이게 맞나?
 	struct rb_tree_node;
 	friend rb_tree_node;
 	struct rb_tree_node {
@@ -392,7 +391,7 @@ private:
 		color(root()) = black;
 		return iterator(z);	// 추가한 노드 이터를 반환
 	};
-    link_type __copy(link_type x, link_type p)
+	link_type __copy(link_type x, link_type p)
 	{
 		// structural copy
 		link_type r = x;
@@ -411,7 +410,7 @@ private:
 		left(p) = NIL;
 		return r;
 	};
-    void __erase(link_type x)
+	void __erase(link_type x)
 	{
 		// erase without rebalancing
 		while (x != NIL)
@@ -423,10 +422,10 @@ private:
 			x = y;
 		}
 	};
-    void init()
+	void init()
 	{
-        ++number_of_trees;
-        if (NIL == 0) {
+		++number_of_trees;
+		if (NIL == 0) {
 			NIL = get_node();
 			color(NIL) = black;
 			parent(NIL) = 0;
@@ -443,46 +442,47 @@ private:
 public:
 
 // allocation/deallocation
+// insert_always default value : true -> false
 
-    rb_tree(const Compare& comp = Compare(), bool always = true)
-           : node_count(0), key_compare(comp), insert_always(always) {
-        init();
-    }
-    rb_tree(const value_type* first, const value_type* last,
-            const Compare& comp = Compare(), bool always = true)
-          : node_count(0), key_compare(comp), insert_always(always) {
-        init();
-        insert(first, last);
-    }
-    rb_tree(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x,
-            bool always = true) : node_count(x.node_count),
-                 key_compare(x.key_compare), insert_always(always) {
-        ++number_of_trees;
-        header = get_node();
-        color(header) = red;
-        root() = __copy(x.root(), header);
-        if (root() == NIL) {
-            leftmost() = header;
-            rightmost() = header;
-        } else {
-	    leftmost() = minimum(root());
-            rightmost() = maximum(root());
-        }
-    }
-    ~rb_tree() {
-        erase(begin(), end());
-        put_node(header);
-        if (--number_of_trees == 0) {
-            put_node(NIL);
-            NIL = 0;
-            deallocate_buffers();
-            free_list = 0;
-            next_avail = 0;
-            last = 0;
-        }
-    }
-    rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>&
-        operator=(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x)
+	rb_tree(const Compare& comp = Compare(), bool always = false)
+			: node_count(0), key_compare(comp), insert_always(always) {
+		init();
+	}
+	rb_tree(const value_type* first, const value_type* last,
+			const Compare& comp = Compare(), bool always = false)
+			: node_count(0), key_compare(comp), insert_always(always) {
+		init();
+		insert(first, last);
+	}
+	rb_tree(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x,
+			bool always = false) : node_count(x.node_count),
+					key_compare(x.key_compare), insert_always(always) {
+		++number_of_trees;
+		header = get_node();
+		color(header) = red;
+		root() = __copy(x.root(), header);
+		if (root() == NIL) {
+			leftmost() = header;
+			rightmost() = header;
+		} else {
+		leftmost() = minimum(root());
+			rightmost() = maximum(root());
+		}
+	}
+	~rb_tree() {
+		erase(begin(), end());
+		put_node(header);
+		if (--number_of_trees == 0) {
+			put_node(NIL);
+			NIL = 0;
+			deallocate_buffers();
+			free_list = 0;
+			next_avail = 0;
+			last = 0;
+		}
+	}
+	rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>&
+		operator=(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x)
 	{
 		if (this != &x)
 		{
@@ -506,39 +506,39 @@ public:
 
 // accessors:
 
-    Compare key_comp() const { return key_compare; }
+	Compare key_comp() const { return key_compare; }
 	// make this constant time.
-    iterator begin() { return leftmost(); }
-    const_iterator begin() const { return leftmost(); }
-    iterator end() { return header; }
-    const_iterator end() const { return header; }
-    reverse_iterator rbegin() { return reverse_iterator(end()); }
-    const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
-    reverse_iterator rend() { return reverse_iterator(begin()); }
-    const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+	// why header node when end()?
+	iterator begin() { return leftmost(); }
+	const_iterator begin() const { return leftmost(); }
+	iterator end() { return header; }
+	const_iterator end() const { return header; }
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
-    bool empty() const { return node_count == 0; }
-    size_type size() const { return node_count; }
-    size_type max_size() const {
-        return rb_tree_node_allocator.max_size();
-    }
-    void swap(rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& t) {
-        ::swap(header, t.header);
-        ::swap(node_count, t.node_count);
-        ::swap(insert_always, t.insert_always);
-        ::swap(key_compare, t.key_compare);
-    }
+	bool empty() const { return node_count == 0; }
+	size_type size() const { return node_count; }
+	size_type max_size() const { return rb_tree_node_allocator.max_size(); }
+	void swap(rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& t)
+	{
+		::swap(header, t.header);
+		::swap(node_count, t.node_count);
+		::swap(insert_always, t.insert_always);
+		::swap(key_compare, t.key_compare);
+	}
 
 // insert/erase
 
-    typedef  pair<iterator, bool> pair_iterator_bool;
-    // typedef done to get around compiler bug
-    pair_iterator_bool insert(const value_type& x);
-    iterator insert(iterator position, const value_type& x);
-    void insert(iterator first, iterator last);
-    void insert(const value_type* first, const value_type* last);
-    void erase(iterator position);
-    size_type erase(const key_type& x)
+	typedef ft::pair<iterator, bool> pair_iterator_bool;
+	// typedef done to get around compiler bug
+	pair_iterator_bool insert(const value_type& x);
+	iterator insert(iterator position, const value_type& x);
+	void insert(iterator first, iterator last);
+	void insert(const value_type* first, const value_type* last);
+	void erase(iterator position);
+	size_type erase(const key_type& x)
 	{
 		pair_iterator_iterator p = equal_range(x);
 		size_type n = 0;
@@ -546,14 +546,14 @@ public:
 		erase(p.first, p.second);
 		return n;
 	};
-    void erase(iterator first, iterator last);
-    void erase(const key_type* first, const key_type* last);
+	void erase(iterator first, iterator last);
+	void erase(const key_type* first, const key_type* last);
 
 // set operations:
 
-    iterator find(const key_type& x);
-    const_iterator find(const key_type& x) const;
-    size_type count(const key_type& x) const
+	iterator find(const key_type& x);
+	const_iterator find(const key_type& x) const;
+	size_type count(const key_type& x) const
 	{
 		pair<const_iterator, const_iterator> p = equal_range(k);
 		size_type n = 0;
@@ -643,13 +643,15 @@ typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::link_type
         rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::NIL = 0;
 
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-void rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::deallocate_buffers() {
-    while (buffer_list) {
-        buffer_pointer tmp = buffer_list;
-        buffer_list = (buffer_pointer)(buffer_list->next_buffer);
-        rb_tree_node_allocator.deallocate(tmp->buffer);
-        buffer_allocator.deallocate(tmp);
-    }
+void rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::deallocate_buffers()
+{
+	while (buffer_list)
+	{
+		buffer_pointer tmp = buffer_list;
+		buffer_list = (buffer_pointer)(buffer_list->next_buffer);
+		rb_tree_node_allocator.deallocate(tmp->buffer);
+		buffer_allocator.deallocate(tmp);
+	}
 }
 
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
@@ -663,88 +665,6 @@ inline bool operator<(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x,
                       const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& y) {
     return lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
-
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>&
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::
-// operator=(const rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>& x) {
-//     if (this != &x) {
-//         // can't be done as in list because Key may be a constant type
-//         erase(begin(), end());
-//         root() = __copy(x.root(), header);
-//         if (root() == NIL) {
-//             leftmost() = header;
-//             rightmost() = header;
-//         } else {
-// 	    leftmost() = minimum(root());
-//             rightmost() = maximum(root());
-//         }
-//         node_count = x.node_count;
-//     }
-//     return *this;
-// }
-
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::iterator
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::
-// __insert(link_type x, link_type y, const Value& v) {
-//     ++node_count;
-//     link_type z = get_node();
-//     construct(value_allocator.address(value(z)), v);
-//     if (y == header || x != NIL || key_compare(KeyOfValue()(v), key(y))) {
-//         left(y) = z;  // also makes leftmost() = z when y == header
-//         if (y == header) {
-//             root() = z;
-//             rightmost() = z;
-//         } else if (y == leftmost())
-//             leftmost() = z;   // maintain leftmost() pointing to minimum node
-//     } else {
-//         right(y) = z;
-//         if (y == rightmost())
-//             rightmost() = z;   // maintain rightmost() pointing to maximum node
-//     }
-//     parent(z) = y;
-//     left(z) = NIL;
-//     right(z) = NIL;
-//     x = z;  // recolor and rebalance the tree
-//     color(x) = red;
-//     while (x != root() && color(parent(x)) == red)
-//         if (parent(x) == left(parent(parent(x)))) {
-//             y = right(parent(parent(x)));
-//             if (color(y) == red) {
-//                 color(parent(x)) = black;
-//                 color(y) = black;
-//                 color(parent(parent(x))) = red;
-//                 x = parent(parent(x));
-//             } else {
-//                 if (x == right(parent(x))) {
-//                     x = parent(x);
-//                     rotate_left(x);
-//                 }
-//                 color(parent(x)) = black;
-//                 color(parent(parent(x))) = red;
-//                 rotate_right(parent(parent(x)));
-//             }
-//         } else {
-//             y = left(parent(parent(x)));
-//             if (color(y) == red) {
-//                 color(parent(x)) = black;
-//                 color(y) = black;
-//                 color(parent(parent(x))) = red;
-//                 x = parent(parent(x));
-//             } else {
-//                 if (x == left(parent(x))) {
-//                     x = parent(x);
-//                     rotate_right(x);
-//                 }
-//                 color(parent(x)) = black;
-//                 color(parent(parent(x))) = red;
-//                 rotate_left(parent(parent(x)));
-//             }
-//         }
-//     color(root()) = black;
-//     return iterator(z);
-// }
 
 // single insert
 // 삽입할 위치를 찾는다.
@@ -947,48 +867,6 @@ void rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::erase(iterator position) 
     --node_count;
 }
 
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::size_type
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::erase(const Key& x) {
-//     pair_iterator_iterator p = equal_range(x);
-//     size_type n = 0;
-//     distance(p.first, p.second, n);
-//     erase(p.first, p.second);
-//     return n;
-// }
-
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::link_type
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::__copy(link_type x, link_type p) {
-//    // structural copy
-//    link_type r = x;
-//    while (x != NIL) {
-//       link_type y = get_node();
-//       if (r == x) r = y;  // save for return value
-//       construct(value_allocator.address(value(y)), value(x));
-//       left(p) = y;
-//       parent(y) = p;
-//       color(y) = color(x);
-//       right(y) = __copy(right(x), y);
-//       p = y;
-//       x = left(x);
-//    }
-//    left(p) = NIL;
-//    return r;
-// }
-
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// void rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::__erase(link_type x) {
-//     // erase without rebalancing
-//     while (x != NIL) {
-//        __erase(right(x));
-//        link_type y = left(x);
-//        destroy(value_allocator.address(value(x)));
-//        put_node(x);
-//        x = y;
-//     }
-// }
-
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
 void rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::erase(iterator first,
                                                      iterator last) {
@@ -1039,15 +917,6 @@ rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::find(const Key& k) const {
    const_iterator j = const_iterator(y);
    return (j == end() || key_compare(k, key(j.node))) ? end() : j;
 }
-
-// template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-// typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::size_type
-// rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::count(const Key& k) const {
-//     pair<const_iterator, const_iterator> p = equal_range(k);
-//     size_type n = 0;
-//     distance(p.first, p.second, n);
-//     return n;
-// }
 
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
 rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::iterator
@@ -1110,13 +979,13 @@ rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::upper_bound(const Key& k) cons
 }
 
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::pair_iterator_iterator
+typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::pair_iterator_iterator
 rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::equal_range(const Key& k) {
     return pair_iterator_iterator(lower_bound(k), upper_bound(k));
 }
 
 template <class Key, class Value, class KeyOfValue, class Compare, class _Alloc>
-rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::pair_citerator_citerator
+typename rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::pair_citerator_citerator
 rb_tree<Key, Value, KeyOfValue, Compare, _Alloc>::equal_range(const Key& k) const {
     return pair_citerator_citerator(lower_bound(k), upper_bound(k));
 }
