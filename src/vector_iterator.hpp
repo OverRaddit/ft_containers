@@ -6,16 +6,19 @@
 namespace ft
 {
 
+//typename value_type
+
 // vector's iterator
 // 왜 상속받는 건지, 무슨 효과가 있는건지 잘 모르겠다.
+//
 template <class T>
 struct vector_iterator : public std::iterator<std::random_access_iterator_tag, T>
 {
-typedef typename std::iterator<std::random_access_iterator_tag, T>::value_type value_type;
-typedef typename std::iterator<std::random_access_iterator_tag, T>::difference_type difference_type;
-typedef typename std::iterator<std::random_access_iterator_tag, T>::pointer pointer;
-typedef typename std::iterator<std::random_access_iterator_tag, T>::reference reference;
-typedef typename std::iterator<std::random_access_iterator_tag, T>::iterator_category iterator_category;
+typedef typename vector_iterator::value_type				value_type;
+typedef typename vector_iterator::difference_type			difference_type;
+typedef typename vector_iterator::pointer					pointer;
+typedef typename vector_iterator::reference					reference;
+typedef typename vector_iterator::iterator_category			iterator_category;
 
 pointer p;
 

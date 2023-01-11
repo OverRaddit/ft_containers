@@ -1,10 +1,11 @@
 #ifndef FT_MAP
 #define FT_MAP
 
-# include <map>
+//# include <map>
 // #include "rbtree.hpp"
-# include "tree_refer.hpp"
+//# include "tree_refer.hpp"
 # include "utility.hpp"
+# include "mytree2.hpp"
 
 namespace ft
 {
@@ -24,7 +25,7 @@ public:
 
 	// 키를 비교하는데 왜 이름이 value_compare?
 	class value_compare
-		: public binary_function<value_type, value_type, bool>
+		: public std::binary_function<value_type, value_type, bool>
 	{
 	friend class map; // map이 value_compare의 필드에 접근할 수 있게된다? 왜필요한지 잘 모르겠다.
 	protected :
@@ -37,19 +38,19 @@ public:
 
 private:
 	// allocator도 템플릿 인자로 넣는 트리로 바꿀 것./
-	typedef rb_tree<key_type, value_type, value_compare, key_compare> rep_type;
+	typedef ft::rb_tree<value_type, value_compare, Alloc> rep_type;
 	rep_type t;  // red-black tree representing map
 public:
-	typedef rep_type::reference							reference;
-	typedef rep_type::const_reference					const_reference;
-	typedef rep_type::pointer							pointer;
-	typedef rep_type::const_pointer						const_pointer;
-	typedef rep_type::iterator							iterator;
-	typedef rep_type::const_iterator					const_iterator;
-	typedef rep_type::reverse_iterator					reverse_iterator;
-	typedef rep_type::const_reverse_iterator			const_reverse_iterator;
-	typedef rep_type::difference_type					difference_type;
-	typedef rep_type::size_type							size_type;
+	typedef typename rep_type::reference						reference;
+	typedef typename rep_type::const_reference					const_reference;
+	typedef typename rep_type::pointer							pointer;
+	typedef typename rep_type::const_pointer					const_pointer;
+	typedef typename rep_type::iterator							iterator;
+	typedef typename rep_type::const_iterator					const_iterator;
+	typedef typename rep_type::reverse_iterator					reverse_iterator;
+	typedef typename rep_type::const_reverse_iterator			const_reverse_iterator;
+	typedef typename rep_type::difference_type					difference_type;
+	typedef typename rep_type::size_type						size_type;
 
 // allocation/deallocation
 
@@ -90,7 +91,7 @@ public:
 	size_type size() const { return t.size(); }
 	size_type max_size() const { return t.max_size(); }
 	// insert는 이미 존재하는 원소를 반환하거나 없으면 추가하는 동작이다.
-	Allocator<T>::reference operator[](const key_type& k)
+	reference operator[](const key_type& k)
 		{ return (*((insert(value_type(k, T()))).first)).second; }
 
 
@@ -101,7 +102,7 @@ public:
 	// single
 	pair_iterator_bool insert (const value_type& val) { return t.insert(val); };
 	// with hint
-	iterator insert (iterator position, const value_type& val) { return t.insert(position, x); };
+	iterator insert (iterator position, const value_type& val) { return t.insert(position, val); };
 	// range
 	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last)
@@ -114,7 +115,7 @@ public:
 	void erase(iterator first, iterator last) { t.erase(first, last); }
 	void swap(map& x) { t.swap(x.t); }
 	// 구현되어 있지 않은 함수!
-	void clear() {t.clear()};
+	void clear() {t.clear();};
 
 // Observers: <- 왜 옵저버라고 부르는지 모르겠다.
 

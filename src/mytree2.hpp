@@ -27,8 +27,14 @@ iterators invalidated are those referring to the deleted node.
 
 */
 
-#ifndef rb_tree
-#define rb_tree
+#ifndef __TREE
+#define __TREE
+
+# include "utility.hpp"
+
+namespace ft
+{
+
 
 // algorithm
 
@@ -64,35 +70,100 @@ _NodePtr __tree_next(_NodePtr __x) throw()
 	return __x->_parent;
 }
 
-//{
-// template <class _EndNodePtr, class _NodePtr>
-// inline _LIBCPP_INLINE_VISIBILITY
-// _EndNodePtr
-// __tree_next_iter(_NodePtr __x) _NOEXCEPT
-// {
-//     if (__x->__right_ != nullptr)
-//         return static_cast<_EndNodePtr>(__tree_min(__x->__right_));
-//     while (!__tree_is_left_child(__x))
-//         __x = __x->__parent_unsafe();
-//     return static_cast<_EndNodePtr>(__x->__parent_);
-// }
+template <class _NodePtr>
+void __tree_left_rotate(_NodePtr __x) throw()
+{
+	_NodePtr __y = __x->_right;
+	__x->_right = __y->_left;
+	if (__x->_right != nullptr)
+		__x->_right->_parent = __x;
+	__y->_parent = __x->_parent;
+	if (__tree_is_left_child(__x))
+		__x->_parent->_left = __y;
+	else
+		__x->_parent->_right = __y;
+	__y->_left = __x;
+	__x->_parent = __y;
+}
 
-// // Returns:  pointer to the previous in-order node before __x.
-// // Precondition:  __x != nullptr.
-// // Note: __x may be the end node.
-// template <class _NodePtr, class _EndNodePtr>
-// inline _LIBCPP_INLINE_VISIBILITY
-// _NodePtr
-// __tree_prev_iter(_EndNodePtr __x) _NOEXCEPT
-// {
-//     if (__x->__left_ != nullptr)
-//         return __tree_max(__x->__left_);
-//     _NodePtr __xx = static_cast<_NodePtr>(__x);
-//     while (__tree_is_left_child(__xx))
-//         __xx = __xx->__parent_unsafe();
-//     return __xx->__parent_unsafe();
-// }
-//}
+template <class _NodePtr>
+void __tree_right_rotate(_NodePtr __x) throw()
+{
+	_NodePtr __y = __x->_left;
+	__x->_left = __y->_right;
+	if (__x->_left != nullptr)
+		__x->_left->_parent = __x;
+	__y->_parent = __x->_parent;
+	if (__tree_is_left_child(__x))
+		__x->_parent->_left = __y;
+	else
+		__x->_parent->_right = __y;
+	__y->_right = __x;
+	__x->_parent = __y;
+}
+
+template <class _NodePtr>
+void
+__tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
+{
+	__x->_color = __x == __root;
+	while (__x != __root && !__x->_parent->_color)
+	{
+		// __x->__parent_ != __root because __x->__parent_->__is_black == false
+		if (__tree_is_left_child(__x->_parent))
+		{
+			_NodePtr __y = __x->_parent->_parent->_right;
+			if (__y != nullptr && !__y->_color)
+			{
+				__x = __x->_parent;
+				__x->_color = black;
+				__x = __x->_parent;
+				__x->_color = (rb_tree::color_type)(__x == __root);
+				__y->_color = black;
+			}
+			else
+			{
+				if (!__tree_is_left_child(__x))
+				{
+					__x = __x->_parent;
+					__tree_left_rotate(__x);
+				}
+				__x = __x->_parent;
+				__x->_color = black;
+				__x = __x->_parent;
+				__x->_color = red;
+				__tree_right_rotate(__x);
+				break;
+			}
+		}
+		else
+		{
+			_NodePtr __y = __x->_parent->_parent->_left;
+			if (__y != nullptr && !__y->_color)
+			{
+				__x = __x->_parent;
+				__x->_color = black;
+				__x = __x->_parent;
+				__x->_color = __x == __root;
+				__y->_color = black;
+			}
+			else
+			{
+				if (__tree_is_left_child(__x))
+				{
+					__x = __x->_parent;
+					__tree_right_rotate(__x);
+				}
+				__x = __x->_parent;
+				__x->_color = black;
+				__x = __x->_parent;
+				__x->_color = red;
+				__tree_left_rotate(__x);
+				break;
+			}
+		}
+	}
+}
 
 template <class Tp, class Compare, class Alloc>
 class rb_tree
@@ -114,20 +185,21 @@ public:
 	typedef Compare										key_compare;
 	typedef Alloc										allocator_type;
 
-	typedef allocator_type::reference					reference;
-	typedef allocator_type::const_reference				const_reference;
-	typedef allocator_type::pointer						pointer;
-	typedef allocator_type::const_pointer				const_pointer;
+	typedef typename allocator_type::reference			reference;
+	typedef typename allocator_type::const_reference	const_reference;
+	typedef typename allocator_type::pointer			pointer;
+	typedef typename allocator_type::const_pointer		const_pointer;
 
-	// node type
-	typedef typename Alloc::rebind<rb_tree_node>::other	node_alloc_type;
-	typedef node_alloc_type::pointer					link_type;
-	typedef node_alloc_type::size_type					size_type;
-	typedef node_alloc_type::difference_type			difference_type;
+	// node type=
+
+	typedef typename Alloc::template rebind<rb_tree_node>::other	node_alloc_type;
+	typedef typename node_alloc_type::pointer						link_type;
+	typedef typename node_alloc_type::size_type						size_type;
+	typedef typename node_alloc_type::difference_type				difference_type;
 
 	// custom type
-	typedef typename node_alloc_type::first_type		key_type;
-	typedef typename node_alloc_type::second_type		mapped_type;
+	typedef typename value_type::first_type							key_type;
+	typedef typename value_type::second_type						mapped_type;
 
 protected:
 	//header's parent: root, left:min, right: max
@@ -136,8 +208,8 @@ protected:
 	link_type _end;		// 루트를 왼쪽 자식으로 가지는 것으로 정의된 _end노드.
 	node_alloc_type _alloc;		// 노드할당기.
 
-	link_type& root() { return left(header); }
-	link_type& root() const { return left(header); }
+	link_type& root() { return left(_end); }
+	link_type& root() const { return left(_end); }
 	// link_type& leftmost() { return left(header); }
 	// link_type& leftmost() const { return left(header); }
 	link_type& leftmost() { return _begin; }
@@ -150,20 +222,20 @@ protected:
 	bool insert_always;  // controls whether an element already in the
 							// tree is inserted again
 
-	Compare key_compare;
+	//Compare key_compare; // 필요없어 보이는데.,.?
 	static link_type NIL; // 필요없도록 바꾸고 싶다.
 	static link_type& left(link_type x) { return x->_left; }
 	static link_type& right(link_type x) { return x->_right; }
 	static link_type& parent(link_type x) { return x->_parent; }
-	static reference value(link_type x) { return (*x).value_field; }
+	static reference value(link_type x) { return x->_value; }
 
 	// ?
 	// static Allocator<Key>::const_reference key(link_type x) {
 	// 	return KeyOfValue()(value(x));
 	// }
-	static key_type key(link_type x) { return *x.first; }
+	static key_type key(link_type x) { return x->first; }
 
-	static color_type& color(link_type x) { return (color_type&)(*x).color_field; }
+	static color_type& color(link_type x) { return (color_type&)x->_color; }
 	static link_type minimum(link_type x) {
 		while (left(x) != NIL)
 			x = left(x);
@@ -180,50 +252,53 @@ protected:
 public:
 
 	template <class T>
-	class iterator : public std::iterator<std::bidirectional_iterator, T>
+	class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
 	{
-		typedef T										value_type;
-		typedef ptrdiff_t								difference_type;
-		typedef T*										pointer;
-		typedef T&										reference;
-		typedef typename std::bidirectional_iterator	iterator_category;
+		typedef T											value_type;
+		typedef ptrdiff_t									difference_type;
+		typedef T*											pointer;
+		typedef T&											reference;
+		typedef typename std::bidirectional_iterator_tag	iterator_category;
 
 		friend class rb_tree;
 		friend class const_iterator;
 
 	protected:
 		link_type node;
-		iterator(link_type x) : node(x) {}
+		__iterator(link_type x) : node(x) {}
 	public:
-		iterator() {}
-		iterator(const iterator& x) : node(x.node) {}
-		iterator(const const_iterator& x) : node(x.node) {}
+		__iterator() {}
+		__iterator(const __iterator& x) : node(x.node) {}
+		// const_iterator에 접근할 수 없다.
+		//iterator(const const_iterator& x) : node(x.node) {}
 
-		bool operator==(const iterator& x) const { return node == x.node; }
-		bool operator!=(const iterator& x) const { return node != x.node;}
+		bool operator==(const __iterator& x) const { return node == x.node; }
+		bool operator!=(const __iterator& x) const { return node != x.node;}
 		reference operator*() const { return value(node); }
 		// __tree_next_iter를 구현해야함.
-		iterator& operator++() { node = __tree_next_iter<link_type>(node); return *this; }
-		iterator operator++(int)
+		__iterator& operator++() { node = __tree_next_iter<link_type>(node); return *this; }
+		__iterator operator++(int)
 		{
-			iterator tmp = *this;
+			__iterator tmp = *this;
 			++*this;
 			return tmp;
 		}
-		iterator& operator--() { node = __tree_prev_iter<link_type>(node); return *this; }
-		iterator operator--(int)
+		__iterator& operator--() { node = __tree_prev_iter<link_type>(node); return *this; }
+		__iterator operator--(int)
 		{
-			iterator tmp = *this;
+			__iterator tmp = *this;
 			--*this;
 			return tmp;
 		}
 	};
 
-	friend iterator;
-	typedef iterator<T>										iterator;
-	typedef iterator<const T>								const_iterator;
+	// 외않되
+	//friend __iterator;
+
+	typedef __iterator<Tp>									iterator;
+	typedef __iterator<const Tp>							const_iterator;
 	typedef ft::reverse_iterator<iterator>					reverse_iterator;
-	typedef ft::const_reverse_iterator<const_iterator>		const_reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 //========================================================================================
 
 // Custom member func
@@ -232,10 +307,10 @@ private:
 	// __insert, __copy, __erase, init 함수,,
 	void __init()
 	{
-		_end = node_alloc_type.allocate(1);
+		_end = _alloc.allocate(1);
 		_begin = _end;
 	}
-	iterator __find(const Key& k)
+	iterator __find(const key_type& k)
 	{
 		link_type x = root();
 		link_type tmp = x;
@@ -253,7 +328,7 @@ private:
 
 		return iterator(_end);
 	}
-	const_iterator __find(const Key& k) const
+	const_iterator __find(const key_type& k) const
 	{
 		link_type x = root();
 		link_type tmp = x;
@@ -280,13 +355,14 @@ private:
 		_alloc.construct(n, v);
 
 		// 노드 추가
-		// 1. 트리에 최초로 새 노드를 삽입한다.
-		// 2. ???
-		// 3. y의 왼쪽 자식으로 노드를 추가한다.
-		if (y == header || x != nullptr || key_compare(key(n), key(y)))
+		// 1. 트리에 최초로 새 노드를 삽입한다.( x is root )
+		// 2. x가 nil인 경우
+		// 3. y의 왼쪽 자식으로 노드를 추가한다.]
+		// 왼쪽으로 추가한다.
+		if (y == _end || key_compare(key(n), key(y)))
 		{
 			y->_left = n;
-			if (y == header)
+			if (y == _end)
 			{
 				root() = n; // // 이게 leftmost를 셋팅해준것과 동일하다.
 				rightmost() = n;
@@ -307,6 +383,7 @@ private:
 		n->_color = red;
 
 		// 규칙 만족 recolor and rebalance
+		// __tree 2104 번째 줄을 참조.
 		__tree_balance_after_insert<link_type>(root(), n);
 	}
 //========================================================================================
@@ -314,19 +391,19 @@ private:
 public:
 
 	rb_tree(key_compare comp, bool always)
-		: node_count(0), insert_always(always), key_compare(comp)
+		: node_count(0), insert_always(always)//, key_compare(comp)
 	{
 		__init();
 	};
 	template <class InputIterator>
 		rb_tree(InputIterator first, InputIterator last, key_compare comp, bool always)
-		: node_count(0), insert_always(always), key_compare(comp)
+		: node_count(0), insert_always(always)//, key_compare(comp)
 	{
 		__init();
 		// __insert(first, last)
 	};
 	rb_tree(rb_tree& x, bool always)
-		: node_count(x.node_count), insert_always(x.insert_always), key_compare(x.key_compare)
+		: node_count(x.node_count), insert_always(x.insert_always)//, key_compare(x.key_compare)
 	{
 		__init();
 		// *this = x;
@@ -358,9 +435,9 @@ public:
 
 // [O]Capacity:
 
-	bool empty() const { return node_count == 0 };
+	bool empty() const { return node_count == 0; };
 	size_type size() const { return node_count; };
-	size_type max_size() const { return node_alloc_type.max_size(); };
+	size_type max_size() const { return _alloc.max_size(); };
 
 // Modifiers:
 
@@ -372,7 +449,7 @@ public:
 	{
 		link_type y = _end;
 		link_type x = _end->_left; // root
-		key_type k =  val.first_type;
+		key_type k =  key(val);
 
 		while (x != nullptr)
 		{
@@ -396,12 +473,12 @@ public:
 		if (key_compare(k, key(j.node)))
 		{
 			if (j == begin())
-				return pair_iterator_bool(__insert(x, y, v), true);
+				return pair_iterator_bool(__insert(x, y, val), true);
 			else
 				--j;
 		}
 		if (key_compare(key(j.node), k))
-			return pair_iterator_bool(__insert(x, y, v), true);
+			return pair_iterator_bool(__insert(x, y, val), true);
 		// 중복된 원소를 넣으려고 함.
 		return pair_iterator_bool(j, false);
 	};
@@ -423,17 +500,17 @@ public:
 		size_type tmp_size = x.node_count;
 		bool tmp_always = x.insert_always;
 
-		x._begin = *this._begin;
-		x._end = *this._end;
-		x._alloc = *this._alloc;
-		x.node_count = *this.node_count;
-		x.insert_always = *this.insert_always;
+		x._begin = _begin;
+		x._end = _end;
+		x._alloc = _alloc;
+		x.node_count = node_count;
+		x.insert_always = insert_always;
 
-		*this._begin = tmp_begin;
-		*this._end = tmp_end;
-		*this._alloc = tmp_alloc;
-		*this.node_count = tmp_size;
-		*this.insert_always = tmp_always;
+		_begin = tmp_begin;
+		_end = tmp_end;
+		_alloc = tmp_alloc;
+		node_count = tmp_size;
+		insert_always = tmp_always;
 	};
 	void clear()
 	{
@@ -468,5 +545,6 @@ public:
 	pair_citerator_citerator equal_range(const key_type& x) const;
 };
 
+}
 
 #endif

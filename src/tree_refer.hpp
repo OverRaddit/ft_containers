@@ -499,7 +499,7 @@ __insert(link_type x, link_type y, const Value& v) {
     ++node_count;
     link_type z = get_node();
     construct(value_allocator.address(value(z)), v);
-	// ???
+	// ??????
     if (y == header || x != NIL || key_compare(KeyOfValue()(v), key(y))) {
         left(y) = z;  // also makes leftmost() = z when y == header
         if (y == header) {
@@ -561,6 +561,9 @@ rb_tree<Key, Value, KeyOfValue, Compare>::insert(const Value& v) {
     link_type y = header;
     link_type x = root();
     bool comp = true;
+	// x는 언제나 NIL이 된다.
+	// y는 insert할 장소의 부모노드이다.
+	// 단, empty의 경우 x는 nil이면서 root이다.
     while (x != NIL) {
         y = x;
         comp = key_compare(KeyOfValue()(v), key(x));
