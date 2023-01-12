@@ -1,7 +1,7 @@
 #ifndef FT_MAP
 #define FT_MAP
 
-//# include <map>
+# include <map>
 // #include "rbtree.hpp"
 //# include "tree_refer.hpp"
 # include "utility.hpp"
@@ -38,7 +38,7 @@ public:
 
 private:
 	// allocator도 템플릿 인자로 넣는 트리로 바꿀 것./
-	typedef ft::rb_tree<value_type, value_compare, Alloc> rep_type;
+	typedef ft::rb_tree<value_type, key_compare, Alloc> rep_type;
 	rep_type t;  // red-black tree representing map
 public:
 	typedef typename rep_type::reference						reference;

@@ -55,9 +55,30 @@ inline _NodePtr __tree_min(_NodePtr __x) throw()
 template <class _NodePtr>
 inline _NodePtr __tree_max(_NodePtr __x) throw()
 {
-	while (__x->__right_ != nullptr)
-		__x = __x->__right_;
+	while (__x->_right != nullptr)
+		__x = __x->_right;
 	return __x;
+}
+
+template <class _NodePtr>
+inline _NodePtr __tree_next_iter(_NodePtr __x) throw()
+{
+	if (__x->_right != nullptr)
+		return __tree_min(__x->_right);
+	while (!__tree_is_left_child(__x))
+		__x = __x->_parent();
+	return __x->_parent;
+}
+
+template <class _NodePtr>
+inline _NodePtr __tree_prev_iter(_NodePtr __x) throw()
+{
+	if (__x->_left != nullptr)
+		return __tree_max(__x->_left);
+	_NodePtr __xx = __x;
+	while (__tree_is_left_child(__xx))
+		__xx = __xx->_parent;
+	return __xx->_parent;
 }
 
 template <class _NodePtr>
@@ -106,7 +127,7 @@ template <class _NodePtr>
 void
 __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 {
-	__x->_color = __x == __root;
+	__x->_color = (int)(__x == __root);
 	while (__x != __root && !__x->_parent->_color)
 	{
 		// __x->__parent_ != __root because __x->__parent_->__is_black == false
@@ -116,10 +137,10 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 			if (__y != nullptr && !__y->_color)
 			{
 				__x = __x->_parent;
-				__x->_color = black;
+				__x->_color = 1;
 				__x = __x->_parent;
-				__x->_color = (rb_tree::color_type)(__x == __root);
-				__y->_color = black;
+				__x->_color = (int)(__x == __root);
+				__y->_color = 1;
 			}
 			else
 			{
@@ -129,9 +150,9 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 					__tree_left_rotate(__x);
 				}
 				__x = __x->_parent;
-				__x->_color = black;
+				__x->_color = 1;
 				__x = __x->_parent;
-				__x->_color = red;
+				__x->_color = 0;
 				__tree_right_rotate(__x);
 				break;
 			}
@@ -142,10 +163,10 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 			if (__y != nullptr && !__y->_color)
 			{
 				__x = __x->_parent;
-				__x->_color = black;
+				__x->_color = 1;
 				__x = __x->_parent;
 				__x->_color = __x == __root;
-				__y->_color = black;
+				__y->_color = 1;
 			}
 			else
 			{
@@ -155,9 +176,9 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 					__tree_right_rotate(__x);
 				}
 				__x = __x->_parent;
-				__x->_color = black;
+				__x->_color = 1;
 				__x = __x->_parent;
-				__x->_color = red;
+				__x->_color = 0;
 				__tree_left_rotate(__x);
 				break;
 			}
@@ -177,12 +198,15 @@ protected:
 		rb_tree_node*	_left;
 		rb_tree_node*	_right;
 		Tp				_value;
+
+		rb_tree_node() : _color(black), _parent(nullptr), _left(nullptr), _right(nullptr)
+		{}
 	};
 	friend class rb_tree_node;
 
 public:
 	typedef Tp											value_type;
-	typedef Compare										key_compare;
+	//typedef Compare										key_compare;
 	typedef Alloc										allocator_type;
 
 	typedef typename allocator_type::reference			reference;
@@ -222,7 +246,7 @@ protected:
 	bool insert_always;  // controls whether an element already in the
 							// tree is inserted again
 
-	//Compare key_compare; // 필요없어 보이는데.,.?
+	Compare key_compare; // 필요없어 보이는데.,.?
 	static link_type NIL; // 필요없도록 바꾸고 싶다.
 	static link_type& left(link_type x) { return x->_left; }
 	static link_type& right(link_type x) { return x->_right; }
@@ -233,7 +257,7 @@ protected:
 	// static Allocator<Key>::const_reference key(link_type x) {
 	// 	return KeyOfValue()(value(x));
 	// }
-	static key_type key(link_type x) { return x->first; }
+	static key_type key(link_type x) { return x->_value.first; }
 
 	static color_type& color(link_type x) { return (color_type&)x->_color; }
 	static link_type minimum(link_type x) {
@@ -384,26 +408,26 @@ private:
 
 		// 규칙 만족 recolor and rebalance
 		// __tree 2104 번째 줄을 참조.
-		__tree_balance_after_insert<link_type>(root(), n);
+		return __tree_balance_after_insert<link_type>(root(), n);
 	}
 //========================================================================================
 
 public:
 
-	rb_tree(key_compare comp, bool always)
-		: node_count(0), insert_always(always)//, key_compare(comp)
+	rb_tree(Compare comp, bool always)
+		: node_count(0), insert_always(always), key_compare(comp)
 	{
 		__init();
 	};
 	template <class InputIterator>
-		rb_tree(InputIterator first, InputIterator last, key_compare comp, bool always)
-		: node_count(0), insert_always(always)//, key_compare(comp)
+		rb_tree(InputIterator first, InputIterator last, Compare comp, bool always)
+		: node_count(0), insert_always(always), key_compare(comp)
 	{
 		__init();
 		// __insert(first, last)
 	};
 	rb_tree(rb_tree& x, bool always)
-		: node_count(x.node_count), insert_always(x.insert_always)//, key_compare(x.key_compare)
+		: node_count(x.node_count), insert_always(x.insert_always), key_compare(x.key_compare)
 	{
 		__init();
 		// *this = x;
@@ -449,7 +473,7 @@ public:
 	{
 		link_type y = _end;
 		link_type x = _end->_left; // root
-		key_type k =  key(val);
+		key_type k =  val.first;
 
 		while (x != nullptr)
 		{
@@ -524,7 +548,7 @@ public:
 
 // [O]Observers:
 
-	key_compare key_comp() const { return key_comp(); }
+	Compare key_comp() const { return key_comp(); }
 
 // map operations:
 
