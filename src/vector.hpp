@@ -338,14 +338,22 @@ public:
 
 			try
 			{
-				construct_range_with_range(new_begin, new_position, _begin, pos);
-				construct_range_with_range(new_position + n, new_end, pos, _end);
+				//std::copy_backward();
+				//construct_range_with_range_templateVer(new_position, new_position + n, first, last);
+				std::uninitialized_copy(first, last, new_position);
+
+
+				std::uninitialized_copy(_begin, pos, new_begin);
+				//construct_range_with_range(new_begin, new_position, _begin, pos);
+				std::uninitialized_copy(pos, _end, new_position + n);
+				//construct_range_with_range(new_position + n, new_end, pos, _end);
+
 				// insert
 				// construct_range_with_range함수를 쓰면 서로 다른 데이터를 가리키는 pointer를 사용하기 때문에 컴파일 에러가 발생한다.
 				// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
 				// construct_range_with_range(new_position, new_position + n, (pointer)first.base(), (pointer)last.base());
 
-				construct_range_with_range_templateVer(new_position, new_position + n, first, last);
+
 				// vector x(first, last);
 				// std::cout << "X created!" << std::endl;
 				// construct_range_with_range(new_position, new_position + n, x.begin().base(), x.end().base());
@@ -364,10 +372,12 @@ public:
 			}
 			catch (...)
 			{
+				_alloc.deallocate(new_begin, new_end_cap - new_begin);
 				std::cout << "Error while insert(range)! delete these elements..." << std::endl;
 				// destroy_range(new_position, new_position + n);
 				// construct_range_with_range(new_position, new_position + n, new_position + n, _end);
 				// erase(iterator(new_position), iterator(new_position + n));
+				throw;
 			}
 		}
 		else // 공간이 충분하다.
@@ -492,12 +502,27 @@ public:
 		// {
 		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
 		// }
-		size_type a = e - b;
-
-		for (; b != e || srcb != srce; b++)
+		try
 		{
-			_alloc.construct(b, *srcb++);
+			size_type a = e - b;
+			for (; b != e || srcb != srce; b++)
+			{
+				new(b) value_type(*srcb++);
+				//_alloc.construct(b, *srcb++);
+			}
 		}
+		catch(...)
+		{
+			// destroy
+			for (; b != e || srcb != srce; b++)
+			{
+				new(b) value_type(*srcb++);
+				//_alloc.construct(b, *srcb++);
+			}
+			throw;
+		}
+
+
 	};
 	// =========================================================================
 
