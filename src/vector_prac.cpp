@@ -1,7 +1,7 @@
 #include "vector.hpp"
 //#include "map.hpp"
 #include "mytree2.hpp"
-#include "mymap.hpp"
+#include "map.hpp"
 #include "utility.hpp"
 #include <exception>
 #include <iostream>
@@ -11,6 +11,50 @@
 #define _make_pair ft::make_pair
 #define _ratio 10
 
+
+
+
+template <class T, class V>
+std::vector<int> copy_constructor_test(std::map<T, V> mp) {
+
+    std::vector<int> v;
+
+    for (int i = 0, j = 10; i < 30 * _ratio; ++i, ++j) {
+        mp.insert(std::make_pair(i, j));
+    }
+    std::map<int, int> mp2(mp.begin(), mp.end());
+    std::map<int, int>::iterator it = mp2.begin();
+    for (int i = 0; i < 30 * _ratio; ++i, it++) {
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    return v;
+}
+
+template <class T, class V>
+std::vector<int> copy_constructor_test(_map<T, V> mp) {
+
+    std::vector<int> v;
+
+    for (int i = 0, j = 10; i < 30 * _ratio; ++i, ++j) {
+        mp.insert(_make_pair(i, j));
+    }
+    _map<int, int> mp2(mp.begin(), mp.end());
+    _map<int, int>::iterator it = mp2.begin();
+    for (int i = 0; i < 30 * _ratio; ++i, it++) {
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    return v;
+}
+
+// int main() {
+//     ft::map<int, int>::iterator it;
+
+//     it->first = 1;
+
+//     return (0);
+// }
 
 int main()
 {
@@ -24,7 +68,8 @@ int main()
 	one[2] = 2;
 	one[3] = 3;
 
-	two.insert(_make_pair(1,1));
+	ft::pair<int,int> a = _make_pair(1,1);
+	two.insert(a);
 	two.insert(_make_pair(2,2));
 	two.insert(_make_pair(3,3));
 	// two[1] = 1;
@@ -37,13 +82,3 @@ int main()
 	std::cout << "size: " << copy.size() << std::endl;
 
 }
-
-// int main()
-// {
-// 	//_map<int, int>::iterator it;
-// 	std::map<int, int>::iterator it;
-
-//     it->first = 1;
-
-//     return (0);
-// }

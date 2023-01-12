@@ -96,8 +96,8 @@ public:
 
 
 // Modifiers:
-
-	typedef ft::pair<iterator, bool> pair_iterator_bool;
+	// pair < tree_iter, bool>
+	typedef pair<iterator, bool> pair_iterator_bool;
 
 	// single
 	pair_iterator_bool insert (const value_type& val) { return t.insert(val); };

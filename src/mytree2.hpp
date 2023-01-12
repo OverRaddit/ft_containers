@@ -66,7 +66,7 @@ inline _NodePtr __tree_next_iter(_NodePtr __x) throw()
 	if (__x->_right != nullptr)
 		return __tree_min(__x->_right);
 	while (!__tree_is_left_child(__x))
-		__x = __x->_parent();
+		__x = __x->_parent;
 	return __x->_parent;
 }
 
@@ -127,20 +127,20 @@ template <class _NodePtr>
 void
 __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 {
-	__x->_color = (int)(__x == __root);
-	while (__x != __root && !__x->_parent->_color)
+	__x->_is_black = (int)(__x == __root);
+	while (__x != __root && !__x->_parent->_is_black)
 	{
 		// __x->__parent_ != __root because __x->__parent_->__is_black == false
 		if (__tree_is_left_child(__x->_parent))
 		{
 			_NodePtr __y = __x->_parent->_parent->_right;
-			if (__y != nullptr && !__y->_color)
+			if (__y != nullptr && !__y->_is_black)
 			{
 				__x = __x->_parent;
-				__x->_color = 1;
+				__x->_is_black = true;
 				__x = __x->_parent;
-				__x->_color = (int)(__x == __root);
-				__y->_color = 1;
+				__x->_is_black = (int)(__x == __root);
+				__y->_is_black = true;
 			}
 			else
 			{
@@ -150,9 +150,9 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 					__tree_left_rotate(__x);
 				}
 				__x = __x->_parent;
-				__x->_color = 1;
+				__x->_is_black = true;
 				__x = __x->_parent;
-				__x->_color = 0;
+				__x->_is_black = false;
 				__tree_right_rotate(__x);
 				break;
 			}
@@ -160,13 +160,13 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 		else
 		{
 			_NodePtr __y = __x->_parent->_parent->_left;
-			if (__y != nullptr && !__y->_color)
+			if (__y != nullptr && !__y->_is_black)
 			{
 				__x = __x->_parent;
-				__x->_color = 1;
+				__x->_is_black = true;
 				__x = __x->_parent;
-				__x->_color = __x == __root;
-				__y->_color = 1;
+				__x->_is_black = __x == __root;
+				__y->_is_black = true;
 			}
 			else
 			{
@@ -176,9 +176,9 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 					__tree_right_rotate(__x);
 				}
 				__x = __x->_parent;
-				__x->_color = 1;
+				__x->_is_black = true;
 				__x = __x->_parent;
-				__x->_color = 0;
+				__x->_is_black = false;
 				__tree_left_rotate(__x);
 				break;
 			}
@@ -190,16 +190,20 @@ template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
 protected:
-	enum color_type {red, black};
 	struct rb_tree_node
 	{
-		color_type		_color;
+		bool			_is_black;
 		rb_tree_node*	_parent;
 		rb_tree_node*	_left;
 		rb_tree_node*	_right;
 		Tp				_value;
 
-		rb_tree_node() : _color(black), _parent(nullptr), _left(nullptr), _right(nullptr)
+		rb_tree_node() : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(Tp())
+		{}
+		rb_tree_node(Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
+		{}
+		rb_tree_node(const rb_tree_node &x)
+			: _is_black(x._is_black), _parent(x._parent), _left(x._left), _right(x._right), _value(x._value)
 		{}
 	};
 	friend class rb_tree_node;
@@ -226,22 +230,28 @@ public:
 	typedef typename value_type::second_type						mapped_type;
 
 protected:
-	//header's parent: root, left:min, right: max
-	// root's parent: header를 추가하자.
 	link_type _begin;	// 최솟값을 가리킴
 	link_type _end;		// 루트를 왼쪽 자식으로 가지는 것으로 정의된 _end노드.
 	node_alloc_type _alloc;		// 노드할당기.
 
 	link_type& root() { return left(_end); }
 	link_type& root() const { return left(_end); }
-	// link_type& leftmost() { return left(header); }
-	// link_type& leftmost() const { return left(header); }
 	link_type& leftmost() { return _begin; }
 	link_type& leftmost() const { return _begin; }
-	link_type& rightmost() { return __tree_max<link_type>(root()); }
-	link_type& rightmost() const { return __tree_max<link_type>(root()); }
-	// link_type& rightmost() { return right(header); }
-	// link_type& rightmost() const { return right(header); }
+	// __tree_max
+	link_type rightmost()
+	{
+		//link_type ret = static_cast<link_type>(__tree_max<link_type>(root()));
+		//return ret;
+		return static_cast<link_type>(__tree_max<link_type>(root()));
+	}
+	link_type rightmost() const
+	{
+		//link_type ret = static_cast<link_type>(__tree_max<link_type>(root()));
+		//return ret;
+		return static_cast<link_type>(__tree_max<link_type>(root()));
+	}
+
 	size_type node_count; // keeps track of size of tree
 	bool insert_always;  // controls whether an element already in the
 							// tree is inserted again
@@ -259,7 +269,7 @@ protected:
 	// }
 	static key_type key(link_type x) { return x->_value.first; }
 
-	static color_type& color(link_type x) { return (color_type&)x->_color; }
+	static bool color(link_type x) { return x->_is_black; }
 	static link_type minimum(link_type x) {
 		while (left(x) != NIL)
 			x = left(x);
@@ -278,6 +288,7 @@ public:
 	template <class T>
 	class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
 	{
+	public:
 		typedef T											value_type;
 		typedef ptrdiff_t									difference_type;
 		typedef T*											pointer;
@@ -291,14 +302,17 @@ public:
 		link_type node;
 		__iterator(link_type x) : node(x) {}
 	public:
-		__iterator() {}
+		__iterator() : node(nullptr) {}
 		__iterator(const __iterator& x) : node(x.node) {}
 		// const_iterator에 접근할 수 없다.
 		//iterator(const const_iterator& x) : node(x.node) {}
 
 		bool operator==(const __iterator& x) const { return node == x.node; }
 		bool operator!=(const __iterator& x) const { return node != x.node;}
-		reference operator*() const { return value(node); }
+
+		Tp& operator*() const { return *(node->_value); }
+		Tp* operator->() const { return &(node->_value); }
+
 		// __tree_next_iter를 구현해야함.
 		__iterator& operator++() { node = __tree_next_iter<link_type>(node); return *this; }
 		__iterator operator++(int)
@@ -331,7 +345,9 @@ private:
 	// __insert, __copy, __erase, init 함수,,
 	void __init()
 	{
+		// allocate를 하면 construct를 어떻게 해야하지?
 		_end = _alloc.allocate(1);
+		_alloc.construct(_end, rb_tree_node());
 		_begin = _end;
 	}
 	iterator __find(const key_type& k)
@@ -375,8 +391,13 @@ private:
 	iterator __insert(link_type x, link_type y, const value_type& v)
 	{
 		++node_count;
+
+		// 내가 알던 초기화방식
 		link_type n = _alloc.allocate(1);
-		_alloc.construct(n, v);
+		_alloc.construct(n, rb_tree_node(v));
+		// placement new 방식
+		// link_type n;
+		// new(n) rb_tree_node(v);
 
 		// 노드 추가
 		// 1. 트리에 최초로 새 노드를 삽입한다.( x is root )
@@ -388,27 +409,29 @@ private:
 			y->_left = n;
 			if (y == _end)
 			{
-				root() = n; // // 이게 leftmost를 셋팅해준것과 동일하다.
-				rightmost() = n;
+				_begin = n; // // 이게 leftmost를 셋팅해준것과 동일하다.
+				//rightmost() = n;
 			}
 			else if (y == leftmost())
-				leftmost() = n;
+				_begin = n;
 		}
 		else
 		{
 			y->_right = n;
-			if (y == rightmost())
-				rightmost() = n;
+			// if (y == rightmost())
+			// 	rightmost() = n;
 		}
 
 		n->_parent = y;
 		n->_left = nullptr;
 		n->_right = nullptr;
-		n->_color = red;
+		n->_is_black = false;
 
 		// 규칙 만족 recolor and rebalance
 		// __tree 2104 번째 줄을 참조.
-		return __tree_balance_after_insert<link_type>(root(), n);
+		__tree_balance_after_insert<link_type>(root(), n);
+
+		return iterator(n);
 	}
 //========================================================================================
 
@@ -448,10 +471,10 @@ public:
 // [O]Iteartors:
 // const_iterator의 생성자 인자로 iterator를 넘겨줘도 돌아갈까?
 
-	iterator begin() { return _begin; };
-	const_iterator begin() const { return _begin; };
-	iterator end() { return _end; };
-	const_iterator end() const { return _end; };
+	iterator begin() { return iterator(_begin); };
+	const_iterator begin() const { return const_iterator(_begin); };
+	iterator end() { return iterator(_end); };
+	const_iterator end() const { return const_iterator(_end); };
 	reverse_iterator rbegin() { return reverse_iterator(_begin); };
 	const_reverse_iterator rbegin() const { return const_reverse_iterator(_begin); };
 	reverse_iterator rend() { return reverse_iterator(_end); };
@@ -464,8 +487,8 @@ public:
 	size_type max_size() const { return _alloc.max_size(); };
 
 // Modifiers:
-
-	typedef ft::pair<iterator, bool> pair_iterator_bool;
+	// pair <
+	typedef pair<iterator, bool> pair_iterator_bool;
 	// return pair_iterator_bool(__insert(x, y, val), true); 이 되나???
 
 	// single
