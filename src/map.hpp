@@ -20,6 +20,7 @@ public:
 	typedef Key										key_type;
 	typedef T										mapped_type;
 	typedef ft::pair<const Key, T>					value_type;
+	//typedef ft::pair<Key, T>						value_type;
 	typedef Compare									key_compare;
 	typedef Alloc									allocator_type;
 
@@ -55,7 +56,7 @@ public:
 // allocation/deallocation
 
 	// empty
-	//map(const Compare& comp = Compare()) : t(comp, false) {}
+	// tree
 	explicit map (const key_compare& comp = key_compare(),
 					const allocator_type& alloc = allocator_type())
 		: t(comp, false){}

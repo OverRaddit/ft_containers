@@ -348,7 +348,7 @@ private:
 		// allocate를 하면 construct를 어떻게 해야하지?
 		_end = _alloc.allocate(1);
 		_alloc.construct(_end, rb_tree_node());
-		_begin = _end;
+		_begin = nullptr;
 	}
 	iterator __find(const key_type& k)
 	{
@@ -449,7 +449,9 @@ public:
 		__init();
 		// __insert(first, last)
 	};
-	rb_tree(rb_tree& x, bool always)
+	// x에 const 안붙이니까 에러가 났다. 왜났지>?
+	// map의 복사생성자에서 이녀석을 부르는데 map의 복사생성자에서 const파라미터를 받기때문에 여기서의 x도 const여야 한다.
+	rb_tree(const rb_tree& x, bool always)
 		: node_count(x.node_count), insert_always(x.insert_always), key_compare(x.key_compare)
 	{
 		__init();

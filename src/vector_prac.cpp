@@ -21,6 +21,7 @@ std::vector<int> copy_constructor_test(std::map<T, V> mp) {
 
     for (int i = 0, j = 10; i < 30 * _ratio; ++i, ++j) {
         mp.insert(std::make_pair(i, j));
+        //mp.insert(_make_pair(i, j));
     }
     std::map<int, int> mp2(mp.begin(), mp.end());
     std::map<int, int>::iterator it = mp2.begin();
@@ -61,24 +62,11 @@ int main()
 	std::map<int, int> one;
 	ft::map<int, int> two;
 
-	// copy_constructor_test(one);
-	// copy_constructor_test(two);
+    copy_constructor_test(one);
+    copy_constructor_test(two);
 
-	one[1] = 1;
-	one[2] = 2;
-	one[3] = 3;
-
-	ft::pair<int,int> a = _make_pair(1,1);
-	two.insert(a);
-	two.insert(_make_pair(2,2));
-	two.insert(_make_pair(3,3));
-	// two[1] = 1;
-	// two[2] = 2;
-	// two[3] = 3;
-
-
-	// constructor
-	ft::map<int, int> copy(one.begin(), one.end());
-	std::cout << "size: " << copy.size() << std::endl;
+    // ft::map<int,int>::iterator iter;
+    // iter = two.begin();
+    // iter = two.end();
 
 }
