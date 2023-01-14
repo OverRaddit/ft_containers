@@ -51,7 +51,7 @@ reference operator*() const
 {
 	iterator_type copy = iter;
 	return *--copy;
-	// return *(iter - 1);
+	//return *(iter - 1);
 };
 reverse_iterator operator+(difference_type n) const
 {
@@ -71,10 +71,11 @@ reverse_iterator operator--(int) {
 	iter++;
 	return copy;
 };
+// a->x;
+// *a.x
 reverse_iterator& operator-=(difference_type n) { iter += n; return *this; };
-pointer operator->() const { return iter; };
-reference operator[](difference_type n) const { return *iter; };
-
+pointer operator->() const { return &(operator*()); };
+reference operator[](difference_type n) const { return *(*this + n); };
 };
 
 // ================================================================================
