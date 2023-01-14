@@ -147,17 +147,37 @@ public:
 
 // cplusplus에 이 함수들은 구현내역에 존재하지 않음.
 
-// template <class Key, class T, class Compare>
-// inline bool operator==(const map& x, const map& y)
-// {
-// 	return x.size() == y.size() && ft::equal(x.begin(), x.end(), y.begin());
-// }
+template <class Key, class T, class Compare, class Alloc>
+bool operator== ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+};
+template <class Key, class T, class Compare, class Alloc>
+bool operator!= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return !(lhs == rhs);
+};
+template <class Key, class T, class Compare, class Alloc>
+bool operator<  ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+};
+template <class Key, class T, class Compare, class Alloc>
+bool operator<= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return (lhs < rhs || lhs == rhs);
+};
+template <class Key, class T, class Compare, class Alloc>
+bool operator>  ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return (lhs <= rhs);
+};
+template <class Key, class T, class Compare, class Alloc>
+bool operator>= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+{
+	return !(lhs < rhs);
+};
 
-// template <class Key, class T, class Compare>
-// inline bool operator<(const map& x, const map& y)
-// {
-// 	return ft::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
-// }
 
 }
 

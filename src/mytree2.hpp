@@ -203,8 +203,16 @@ protected:
 		rb_tree_node(Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
 		{}
 		rb_tree_node(const rb_tree_node &x)
-			: _is_black(x._is_black), _parent(x._parent), _left(x._left), _right(x._right), _value(x._value)
+			: _is_black(x._is_black), _parent(nullptr), _left(nullptr), _right(nullptr), _value(x._value)
 		{}
+
+		~rb_tree_node()
+		{
+			_left = nullptr;
+			_right = nullptr;
+			_parent = nullptr;
+			_is_black = false;
+		}
 	};
 	friend class rb_tree_node;
 
@@ -236,20 +244,19 @@ protected:
 
 	link_type& root() { return left(_end); }
 	link_type& root() const { return left(_end); }
+
+	// empty()일때 _begin은 _end를 가리킨다...
 	link_type& leftmost() { return _begin; }
 	link_type& leftmost() const { return _begin; }
+
 	// __tree_max
-	link_type rightmost()
+	link_type& rightmost()
 	{
-		//link_type ret = static_cast<link_type>(__tree_max<link_type>(root()));
-		//return ret;
-		return static_cast<link_type>(__tree_max<link_type>(root()));
+		return _end->_right;
 	}
-	link_type rightmost() const
+	link_type& rightmost() const
 	{
-		//link_type ret = static_cast<link_type>(__tree_max<link_type>(root()));
-		//return ret;
-		return static_cast<link_type>(__tree_max<link_type>(root()));
+		return _end->_right;
 	}
 
 	size_type node_count; // keeps track of size of tree
@@ -310,7 +317,7 @@ public:
 		bool operator==(const __iterator& x) const { return node == x.node; }
 		bool operator!=(const __iterator& x) const { return node != x.node;}
 
-		Tp& operator*() const { return *(node->_value); }
+		Tp& operator*() const { return node->_value; }
 		Tp* operator->() const { return &(node->_value); }
 
 		// __tree_next_iter를 구현해야함.
@@ -348,7 +355,7 @@ private:
 		// allocate를 하면 construct를 어떻게 해야하지?
 		_end = _alloc.allocate(1);
 		_alloc.construct(_end, rb_tree_node());
-		_begin = nullptr;
+		_begin = _end;
 	}
 	iterator __find(const key_type& k)
 	{
@@ -404,13 +411,13 @@ private:
 		// 2. x가 nil인 경우
 		// 3. y의 왼쪽 자식으로 노드를 추가한다.]
 		// 왼쪽으로 추가한다.
-		if (y == _end || key_compare(key(n), key(y)))
+		if (y == _end || x != nullptr || key_compare(key(n), key(y)))
 		{
 			y->_left = n;
 			if (y == _end)
 			{
 				_begin = n; // // 이게 leftmost를 셋팅해준것과 동일하다.
-				//rightmost() = n;
+				rightmost() = n;
 			}
 			else if (y == leftmost())
 				_begin = n;
@@ -418,8 +425,8 @@ private:
 		else
 		{
 			y->_right = n;
-			// if (y == rightmost())
-			// 	rightmost() = n;
+			if (y == rightmost())
+				rightmost() = n;
 		}
 
 		n->_parent = y;
@@ -432,6 +439,33 @@ private:
 		__tree_balance_after_insert<link_type>(root(), n);
 
 		return iterator(n);
+	}
+
+	// clear
+	void __clear(link_type x)
+	{
+		if (x == nullptr) return;
+
+		link_type l = x->_left, r = x->_right;
+
+		_alloc.destroy(x);
+		_alloc.deallocate(x, 1);
+
+		if(l != nullptr)
+			__clear(l);
+		if(r != nullptr)
+			__clear(r);
+	}
+
+	// 매우 비효율적...
+	link_type __copy(link_type origin, link_type copy)
+	{
+		_alloc.construct(copy, *origin); //copy = origin;
+
+		copy->_left = _alloc.allocate(1);
+		copy->_right = _alloc.allocate(1);
+		__copy(origin->_left, copy->_left);
+		__copy(origin->_right, copy->_right);
 	}
 //========================================================================================
 
@@ -447,7 +481,7 @@ public:
 		: node_count(0), insert_always(always), key_compare(comp)
 	{
 		__init();
-		// __insert(first, last)
+		insert(first, last);
 	};
 	// x에 const 안붙이니까 에러가 났다. 왜났지>?
 	// map의 복사생성자에서 이녀석을 부르는데 map의 복사생성자에서 const파라미터를 받기때문에 여기서의 x도 const여야 한다.
@@ -459,15 +493,17 @@ public:
 	};
 	rb_tree& operator=(const rb_tree& x)
 	{
-		// __insert(x.begin(), x.end())
+		rb_tree tmp(x);
+		swap(tmp);
+		//__insert(x.begin(), x.end())
+		return *this;
 	};
 
 	// ?
 	~rb_tree()
 	{
-		// begin~end지우기
-		// end지우기
-		// 멤버변수 0으로 바꾸기.
+		_end->_right = nullptr;
+		__clear(_end);
 	};
 
 // [O]Iteartors:
@@ -477,10 +513,10 @@ public:
 	const_iterator begin() const { return const_iterator(_begin); };
 	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_iterator(_end); };
-	reverse_iterator rbegin() { return reverse_iterator(_begin); };
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(_begin); };
-	reverse_iterator rend() { return reverse_iterator(_end); };
-	const_reverse_iterator rend() const { return const_reverse_iterator(_end); };
+	reverse_iterator rbegin() { return reverse_iterator(_end); };
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(_end); };
+	reverse_iterator rend() { return reverse_iterator(_begin); };
+	const_reverse_iterator rend() const { return const_reverse_iterator(_begin); };
 
 // [O]Capacity:
 
@@ -507,10 +543,15 @@ public:
 				x = x->_left;
 			else if (key_compare(key(x), k))
 				x = x->_right;
+			else
+				break;
 			// else
 			// 	return iterator(x);
 		}
 		// x,y = null, 추가될위치 부모
+
+		if (empty())
+			return pair_iterator_bool(__insert(x, y, val), true);
 
 		// 중복 키값을 허용할 경우 추가한다.
 		if (insert_always)
@@ -532,14 +573,56 @@ public:
 		return pair_iterator_bool(j, false);
 	};
 	// with hint
-	iterator insert (iterator pos, const value_type& val);
+	iterator insert (iterator pos, const value_type& val)
+	{
+		if (pos == begin().node)
+		{
+			// 왼 자식으로 삽입.
+			if (!empty() && key_compare(val.first, key(pos.node)))
+				return __insert(pos.node, pos.node, val); // 첫째인자가 NIL이여도 됨.
+			return insert(val).first;
+		}
+		else if (pos == end().node)
+		{
+			// 오른 자식으로 삽입.
+			if (key_compare(key(rightmost()), val.first))
+				return __insert(nullptr, rightmost(), val);
+			return insert(val).first;
+		}
+		else
+		{
+			iterator before = --pos;
+			if (key_compare(key(before.node), val.first) &&
+				key_compare(val.first, key(pos.node)))
+			{
+				// =========================== 어렵당...
+				if (right(before.node) == nullptr)
+					return __insert(nullptr, before.node, val);
+				else
+					return __insert(pos.node, pos.node, val);
+				// first argument just needs to be non-NIL
+				// if (pos->_left == nullptr)
+				// 	return __insert(pos.node, pos.node, val);
+				// else if (right(before.node) == NIL)
+				// 	return __insert(NIL, before.node, val);
+				// ===========================
+			}
+			return insert(val).first;
+		}
+	};
 	// range
 	template <class InputIterator>
-	void insert (InputIterator first, InputIterator last);
+	void insert (InputIterator first, InputIterator last)
+	{
+		while (first != last) insert(*first++);
+	};
 
 	void erase(iterator position);
 	size_type erase(const key_type& k);
-	void erase(iterator first, iterator last);
+	void erase(iterator first, iterator last)
+	{
+		while (first != last) erase(*first++);
+	};
 
 	void swap(rb_tree& x)
 	{
@@ -563,12 +646,9 @@ public:
 	};
 	void clear()
 	{
-		// __tree기준
-
-		// destroy(__root)
-		// size = 0
-		// _begin = _end
-		// _end->_left = nullptr
+		__clear(_end->_left);
+		_begin = _end;
+		_end->_right = nullptr;
 	}
 
 // [O]Observers:
@@ -577,13 +657,108 @@ public:
 
 // map operations:
 
-	iterator find(const key_type& k);
-	const_iterator find(const key_type& k) const;
-	size_type count(const key_type& k) const;
-	iterator lower_bound(const key_type& k);
-	const_iterator lower_bound(const key_type& k) const;
-	iterator upper_bound(const key_type& k);
-	const_iterator upper_bound(const key_type& k) const;
+	iterator find(const key_type& k)
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else if (key_compare(key(x), k))
+				x = x->_right;
+			else
+				return iterator(x);
+		}
+		return iterator(tmp);
+	};
+	const_iterator find(const key_type& k) const
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else if (key_compare(key(x), k))
+				x = x->_right;
+			else
+				return const_iterator(x);
+		}
+		return const_iterator(tmp);
+	};
+	// 특정키값이 있는지 찾을것.
+	size_type count(const key_type& k) const { return (find(k) == _end) ? 0 : 1; };
+	iterator lower_bound(const key_type& k)
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else if (key_compare(key(x), k))
+				x = x->_right;
+			// 동일 원소가 없을때만 성립한다.
+			else
+				return iterator(x);
+		}
+		return iterator(tmp);
+	};
+	const_iterator lower_bound(const key_type& k) const
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else if (key_compare(key(x), k))
+				x = x->_right;
+			// 동일 원소가 없을때만 성립한다.
+			else
+				return iterator(x);
+		}
+		return iterator(tmp);
+	};
+	iterator upper_bound(const key_type& k)
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else
+				x = x->_right;
+		}
+		return iterator(tmp);
+	};
+	const_iterator upper_bound(const key_type& k) const
+	{
+		link_type x = root();
+		link_type tmp = x;
+
+		while (x != nullptr)
+		{
+			tmp = x;
+			if (key_compare(k, key(x)))
+				x = x->_left;
+			else
+				x = x->_right;
+		}
+		return iterator(tmp);
+	};
 
 	typedef ft::pair<iterator, iterator> pair_iterator_iterator;
 
@@ -592,7 +767,21 @@ public:
 
 	typedef ft::pair<const_iterator, const_iterator> pair_citerator_citerator;
 	pair_citerator_citerator equal_range(const key_type& x) const;
+
 };
+template <class Tp, class Compare, class Alloc>
+bool operator==(const rb_tree<Tp, Compare, Alloc>& lhs,
+				const rb_tree<Tp, Compare, Alloc>& rhs)
+{
+	return lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <class Tp, class Compare, class Alloc>
+bool operator<(const rb_tree<Tp, Compare, Alloc>& lhs,
+				const rb_tree<Tp, Compare, Alloc>& rhs)
+{
+	return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
 
 }
 

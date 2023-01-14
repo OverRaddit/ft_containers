@@ -586,17 +586,24 @@ template <class Key, class Value, class KeyOfValue, class Compare>
 rb_tree<Key, Value, KeyOfValue, Compare>::iterator
 rb_tree<Key, Value, KeyOfValue, Compare>::insert(iterator position,
                                                  const Value& v) {
+	// hint begin인 경우.
     if (position == iterator(begin()))
+		// 왼쪽자식: 맨앞 노드에 추가, 1,2번째 파라미터를 같게해서 왼쪽자식으로 추가하게 만든다.
         if (size() > 0 && key_compare(KeyOfValue()(v), key(position.node)))
             return __insert(position.node, position.node, v);
             // first argument just needs to be non-NIL
+		// 오른자식: ???? 왜 __insert가 아닌 insert인지 모르겟음.
         else
             return insert(v).first;
+	// hint = end인 경우.
     else if (position == iterator(end()))
+		// 오른: 최댓값노드에 오른자식으로 추가. 1,2파라미터를 다르게해서 오른자식으로 추가됨.
         if (key_compare(key(rightmost()), KeyOfValue()(v)))
             return __insert(NIL, rightmost(), v);
+		// ???
         else
             return insert(v).first;
+	// 그외 경우.
     else {
         iterator before = --position;
         if (key_compare(key(before.node), KeyOfValue()(v))
@@ -752,21 +759,21 @@ rb_tree<Key, Value, KeyOfValue, Compare>::erase(const Key& x) {
 template <class Key, class Value, class KeyOfValue, class Compare>
 rb_tree<Key, Value, KeyOfValue, Compare>::link_type
 rb_tree<Key, Value, KeyOfValue, Compare>::__copy(link_type x, link_type p) {
-   // structural copy
-   link_type r = x;
-   while (x != NIL) {
-      link_type y = get_node();
-      if (r == x) r = y;  // save for return value
-      construct(value_allocator.address(value(y)), value(x));
-      left(p) = y;
-      parent(y) = p;
-      color(y) = color(x);
-      right(y) = __copy(right(x), y);
-      p = y;
-      x = left(x);
-   }
-   left(p) = NIL;
-   return r;
+	// structural copy
+	link_type r = x;
+	while (x != NIL) {
+		link_type y = get_node();
+		if (r == x) r = y;  // save for return value
+		construct(value_allocator.address(value(y)), value(x));
+		left(p) = y;
+		parent(y) = p;
+		color(y) = color(x);
+		right(y) = __copy(right(x), y);
+		p = y;
+		x = left(x);
+	}
+	left(p) = NIL;
+	return r;
 }
 
 template <class Key, class Value, class KeyOfValue, class Compare>

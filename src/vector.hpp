@@ -327,7 +327,6 @@ public:
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
-			std::cout << "not Enough space!" << std::endl;
 			// 생각해볼것....!
 			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
@@ -373,7 +372,6 @@ public:
 			catch (...)
 			{
 				_alloc.deallocate(new_begin, new_end_cap - new_begin);
-				std::cout << "Error while insert(range)! delete these elements..." << std::endl;
 				// destroy_range(new_position, new_position + n);
 				// construct_range_with_range(new_position, new_position + n, new_position + n, _end);
 				// erase(iterator(new_position), iterator(new_position + n));
@@ -382,7 +380,6 @@ public:
 		}
 		else // 공간이 충분하다.
 		{
-			std::cout << "Enough space!" << std::endl;
 			// shift
 			shift_right(pos, _end, pos + n, _end + n, _end);
 
