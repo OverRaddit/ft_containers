@@ -186,6 +186,61 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 	}
 }
 
+
+// _tree_iterator
+// template <class T, class NodePtr>
+// class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
+// {
+// public:
+// 	typedef T											value_type;
+// 	typedef ptrdiff_t									difference_type;
+// 	typedef T*											pointer;
+// 	typedef T&											reference;
+// 	typedef typename std::bidirectional_iterator_tag	iterator_category;
+
+// 	friend class rb_tree;
+// 	friend class const_iterator;
+
+// protected:
+// 	NodePtr node;
+// 	__iterator(NodePtr x) : node(x) {}
+// public:
+// 	__iterator() : node(nullptr) {}
+// 	template <class U>
+// 	__iterator(const __iterator<U>& x) : node(x.node) {}
+// 	// const_iterator에 접근할 수 없다.
+// 	//iterator(const const_iterator& x) : node(x.node) {}
+
+// 	// 뭐가 맞는지 모르겠다.
+// 	// bool operator==(const __iterator& x) const { return node == x.node; }
+// 	// bool operator!=(const __iterator& x) const { return node != x.node;}
+// 	template <class U>
+// 	bool operator==(const __iterator<U>& x) const { return node == x.node; }
+// 	template <class U>
+// 	bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+
+// 	Tp& operator*() const { return node->_value; }
+// 	Tp* operator->() const { return &(node->_value); }
+
+// 	// __tree_next_iter를 구현해야함.
+// 	__iterator& operator++() { node = __tree_next_iter<NodePtr>(node); return *this; }
+// 	__iterator operator++(int)
+// 	{
+// 		__iterator tmp = *this;
+// 		++*this;
+// 		return tmp;
+// 	}
+// 	__iterator& operator--() { node = __tree_prev_iter<NodePtr>(node); return *this; }
+// 	__iterator operator--(int)
+// 	{
+// 		__iterator tmp = *this;
+// 		--*this;
+// 		return tmp;
+// 	}
+// };
+
+
+
 template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
@@ -310,12 +365,25 @@ public:
 		__iterator(link_type x) : node(x) {}
 	public:
 		__iterator() : node(nullptr) {}
-		__iterator(const __iterator& x) : node(x.node) {}
+		template <class U>
+		__iterator(const __iterator<U>& x) : node(x.node) {}
+
+		template <class U>
+		__iterator& operator=(const __iterator<U>& x)
+		{
+			node = x.node;
+			return *this;
+		}
 		// const_iterator에 접근할 수 없다.
 		//iterator(const const_iterator& x) : node(x.node) {}
 
-		bool operator==(const __iterator& x) const { return node == x.node; }
-		bool operator!=(const __iterator& x) const { return node != x.node;}
+		// 뭐가 맞는지 모르겠다.
+		// bool operator==(const __iterator& x) const { return node == x.node; }
+		// bool operator!=(const __iterator& x) const { return node != x.node;}
+		template <class U>
+		bool operator==(const __iterator<U>& x) const { return node == x.node; }
+		template <class U>
+		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
 
 		Tp& operator*() const { return node->_value; }
 		Tp* operator->() const { return &(node->_value); }
@@ -450,6 +518,7 @@ private:
 
 		_alloc.destroy(x);
 		_alloc.deallocate(x, 1);
+		//delete x;
 
 		if(l != nullptr)
 			__clear(l);
@@ -486,24 +555,29 @@ public:
 	// x에 const 안붙이니까 에러가 났다. 왜났지>?
 	// map의 복사생성자에서 이녀석을 부르는데 map의 복사생성자에서 const파라미터를 받기때문에 여기서의 x도 const여야 한다.
 	rb_tree(const rb_tree& x, bool always)
-		: node_count(x.node_count), insert_always(x.insert_always), key_compare(x.key_compare)
+		: node_count(x.node_count), insert_always(always), key_compare(x.key_compare)
 	{
 		__init();
-		// *this = x;
+		insert(x.begin(), x.end());
 	};
 	rb_tree& operator=(const rb_tree& x)
 	{
-		rb_tree tmp(x);
-		swap(tmp);
-		//__insert(x.begin(), x.end())
+		clear();
+		insert(x.begin(), x.end());
+
+		insert_always = x.insert_always;
+		key_compare = x.key_compare;
+
 		return *this;
 	};
 
-	// ?
 	~rb_tree()
 	{
+		if (!_end)
+			return ;
 		_end->_right = nullptr;
-		__clear(_end);
+		__clear(_end->_left);
+		delete _end;
 	};
 
 // [O]Iteartors:
@@ -575,14 +649,26 @@ public:
 	// with hint
 	iterator insert (iterator pos, const value_type& val)
 	{
-		if (pos == begin().node)
+		// if (pos == end())
+		// {
+ 		// 	if (!empty() && key_compare(key(rightmost()), val.first))
+		// 		return __insert(nullptr, rightmost(), val);
+		// 	return __insert ()
+		// }
+		// if (key_compare(val.first, key(pos.node)) && pos.node->_left == nullptr)
+		// 	return __insert(pos.node, pos.node, val);
+		// return insert(val).first;
+
+
+
+		if (pos == begin())
 		{
 			// 왼 자식으로 삽입.
 			if (!empty() && key_compare(val.first, key(pos.node)))
-				return __insert(pos.node, pos.node, val); // 첫째인자가 NIL이여도 됨.
+				return __insert(pos.node, pos.node, val);
 			return insert(val).first;
 		}
-		else if (pos == end().node)
+		else if (pos == end())
 		{
 			// 오른 자식으로 삽입.
 			if (key_compare(key(rightmost()), val.first))
@@ -649,6 +735,8 @@ public:
 		__clear(_end->_left);
 		_begin = _end;
 		_end->_right = nullptr;
+		_end->_left = nullptr;
+		node_count = 0;
 	}
 
 // [O]Observers:

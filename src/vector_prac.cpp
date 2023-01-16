@@ -2,6 +2,7 @@
 //#include "map.hpp"
 #include "mytree2.hpp"
 #include "map.hpp"
+#include <map>
 #include "utility.hpp"
 #include <exception>
 #include <iostream>
@@ -74,20 +75,99 @@ std::vector<int> insert_test(_map<T, V> mp) {
     return v;
 }
 
+template <class T, class V>
+std::vector<int> insert_test_3(std::map<T, V> mp) {
+    std::vector<int> v;
+    typename std::map<T, V>::iterator it = mp.end();
+    for (int i = 0, j = 0; i < 50 * _ratio; ++i, ++j) {
+        mp.insert(it, std::make_pair(i, j));
+    }
+    typename std::map<T, V>::iterator it2 = mp.begin();
+    for (; it2 != mp.end(); ++it2) {
+        v.push_back(it2->first);
+        v.push_back(it2->second);
+    }
+    return v;
+}
+
+template <class T, class V>
+std::vector<int> insert_test_3(_map<T, V> mp) {
+    std::vector<int> v;
+    typename _map<T, V>::iterator it = mp.end();
+    for (int i = 0, j = 0; i < 50 * _ratio; ++i, ++j) {
+        mp.insert(it, _make_pair(i, j));
+    }
+    typename _map<T, V>::iterator it2 = mp.begin();
+    for (; it2 != mp.end(); ++it2) {
+        v.push_back(it2->first);
+        v.push_back(it2->second);
+    }
+    return v;
+}
+
+
+template <class T, class V>
+std::vector<int> assign_overload_test(std::map<T, V> mp) {
+    std::vector<int> v;
+    for (int i = 0, j = 10; i < 20 * _ratio; ++i, ++j)
+        mp.insert(std::make_pair(i, j));
+    std::map<T, V> mp2;
+    for (int i = 20 * _ratio, j = 200010; i < 40 * _ratio; ++i, ++j)
+        mp2.insert(std::make_pair(i, j));
+    mp2 = mp;
+    typename std::map<T, V>::iterator it = mp2.begin();
+    for (; it != mp2.end(); it++) {
+        std::cout << it->first << ", " << it->second << std::endl;
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    v.push_back(mp2.size());
+    return v;
+}
+
+template <class T, class V>
+std::vector<int> assign_overload_test(_map<T, V> mp) {
+    std::vector<int> v;
+    for (int i = 0, j = 10; i < 20 * _ratio; ++i, ++j)
+        mp.insert(_make_pair(i, j));
+    _map<T, V> mp2;
+    for (int i = 20 * _ratio, j = 200010; i < 40 * _ratio; ++i, ++j)
+        mp2.insert(_make_pair(i, j));
+    mp2 = mp;
+    typename _map<T, V>::iterator it = mp2.begin();
+    for (; it != mp2.end(); it++) {
+        std::cout << it->first << ", " << it->second << std::endl;
+        v.push_back(it->first);
+        v.push_back(it->second);
+    }
+    v.push_back(mp2.size());
+    return v;
+}
+
+
 int main()
 {
 	std::map<int, int> one;
-	std::map<int, int> one3;
 	ft::map<int, int> two;
 	ft::map<int, int> three = two;
+	vector<int> v1;
+	vector<int> v2;
 
-	// insert_test(one);
-	// insert_test(two);
+	// std::cout << "one" << std::endl;
+	// v1 = insert_test(one);
+	// for(int i=0;i<v1.size();i++)
+	//     std::cout << v1[i] << std::endl;
+	// std::cout << "two" << std::endl;
+	// v2 = insert_test(two);
+	// for(int i=0;i<v2.size();i++)
+	//     std::cout << v2[i] << std::endl;
 
-	two.insert(two.begin(), _make_pair(1,1));
-	two.insert(two.begin(), _make_pair(2,2));
-	two.insert(two.begin(), _make_pair(3,3));
+	_map<int, int, std::plus<int> > mp3;
+	_map<int, int, std::plus<int> >::iterator mp3iter = --mp3.end();
+	vector<int> v;
+	for (typename _map<int, int>::iterator it = --mp3.end(); it != mp3.begin(); it--) { v.push_back(it->first); }
 
-	std::cout << two.count(1) << std::endl;
-	two.size();
+	_map<int, int>::iterator iter;
+	std::cout << (*(--iter)).first << std::endl;
+
 }

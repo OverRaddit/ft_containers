@@ -62,13 +62,14 @@ public:
 		: t(comp, false){}
 
 	// range
-	// map(const value_type* first, const value_type* last,
-	// 	const Compare& comp = Compare()) : t(first, last, comp, false) {}
+	// insert를 트리생성자에서 하는 방식
+	// insert를 맵생성자에서 하는 방식
 	template <class InputIterator>
 	map (InputIterator first, InputIterator last,
 		const key_compare& comp = key_compare(),
 		const allocator_type& alloc = allocator_type())
-	: t(first, last, comp, false) {};
+	: t(first, last, comp, false)
+	{};
 
 	// copy
 	map(const map& x) : t(x.t, false) {}
