@@ -162,12 +162,15 @@ int main()
 	// for(int i=0;i<v2.size();i++)
 	//     std::cout << v2[i] << std::endl;
 
-	_map<int, int, std::plus<int> > mp3;
-	_map<int, int, std::plus<int> >::iterator mp3iter = --mp3.end();
-	vector<int> v;
-	for (typename _map<int, int>::iterator it = --mp3.end(); it != mp3.begin(); it--) { v.push_back(it->first); }
+	std::map<int, int> mp;
+	std::map<int, int, std::plus<int> >::iterator mpiter = mp.end();
+	_map<int, int> mp3;
+	_map<int, int, std::plus<int> >::iterator mp3iter = mp3.end();
+	// _map<int, int>::iterator justiter = mp3.end();
+	// vector<int> v;
+	// for (typename _map<int, int>::iterator it = --mp3.end(); it != mp3.begin(); it--) { v.push_back(it->first); }
 
-	_map<int, int>::iterator iter;
-	std::cout << (*(--iter)).first << std::endl;
+	// _map<int, int>::iterator iter;
+	// std::cout << (*(--iter)).first << std::endl;
 
 }

@@ -238,37 +238,37 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 // 		return tmp;
 // 	}
 // };
+template <class Tp>
+struct rb_tree_node
+{
+	bool			_is_black;
+	rb_tree_node*	_parent;
+	rb_tree_node*	_left;
+	rb_tree_node*	_right;
+	Tp				_value;
 
+	rb_tree_node() : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(Tp())
+	{}
+	rb_tree_node(Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
+	{}
+	rb_tree_node(const rb_tree_node &x)
+		: _is_black(x._is_black), _parent(nullptr), _left(nullptr), _right(nullptr), _value(x._value)
+	{}
 
+	~rb_tree_node()
+	{
+		_left = nullptr;
+		_right = nullptr;
+		_parent = nullptr;
+		_is_black = false;
+	}
+};
 
 template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
 protected:
-	struct rb_tree_node
-	{
-		bool			_is_black;
-		rb_tree_node*	_parent;
-		rb_tree_node*	_left;
-		rb_tree_node*	_right;
-		Tp				_value;
 
-		rb_tree_node() : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(Tp())
-		{}
-		rb_tree_node(Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
-		{}
-		rb_tree_node(const rb_tree_node &x)
-			: _is_black(x._is_black), _parent(nullptr), _left(nullptr), _right(nullptr), _value(x._value)
-		{}
-
-		~rb_tree_node()
-		{
-			_left = nullptr;
-			_right = nullptr;
-			_parent = nullptr;
-			_is_black = false;
-		}
-	};
 	friend class rb_tree_node;
 
 public:
@@ -347,7 +347,7 @@ protected:
 //========================================================================================
 public:
 
-	template <class T>
+	template <class T, class Tree>
 	class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
 	{
 	public:
@@ -360,16 +360,18 @@ public:
 		friend class rb_tree;
 		friend class const_iterator;
 
+	private:
+		typedef typename Tree::link_type					NodePtr;
+
 	protected:
-		link_type node;
-		__iterator(link_type x) : node(x) {}
+		NodePtr node;
+		__iterator(NodePtr x) : node(x) {}
 	public:
 		__iterator() : node(nullptr) {}
-		template <class U>
-		__iterator(const __iterator<U>& x) : node(x.node) {}
+		__iterator(const __iterator& x) : node(x.node) {}
 
 		template <class U>
-		__iterator& operator=(const __iterator<U>& x)
+		__iterator& operator=(const __iterator& x)
 		{
 			node = x.node;
 			return *this;
@@ -380,23 +382,23 @@ public:
 		// 뭐가 맞는지 모르겠다.
 		// bool operator==(const __iterator& x) const { return node == x.node; }
 		// bool operator!=(const __iterator& x) const { return node != x.node;}
-		template <class U>
-		bool operator==(const __iterator<U>& x) const { return node == x.node; }
-		template <class U>
-		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+		template <class U, class _Tree>
+		bool operator==(const __iterator<U, _Tree>& x) const { return node == x.node; }
+		template <class U, class _Tree>
+		bool operator!=(const __iterator<U, _Tree>& x) const { return node != x.node;}
 
 		Tp& operator*() const { return node->_value; }
 		Tp* operator->() const { return &(node->_value); }
 
 		// __tree_next_iter를 구현해야함.
-		__iterator& operator++() { node = __tree_next_iter<link_type>(node); return *this; }
+		__iterator& operator++() { node = __tree_next_iter<NodePtr>(node); return *this; }
 		__iterator operator++(int)
 		{
 			__iterator tmp = *this;
 			++*this;
 			return tmp;
 		}
-		__iterator& operator--() { node = __tree_prev_iter<link_type>(node); return *this; }
+		__iterator& operator--() { node = __tree_prev_iter<NodePtr>(node); return *this; }
 		__iterator operator--(int)
 		{
 			__iterator tmp = *this;
@@ -408,8 +410,8 @@ public:
 	// 외않되
 	//friend __iterator;
 
-	typedef __iterator<Tp>									iterator;
-	typedef __iterator<const Tp>							const_iterator;
+	typedef __iterator<Tp, rb_tree>							iterator;
+	typedef __iterator<const Tp, rb_tree>					const_iterator;
 	typedef ft::reverse_iterator<iterator>					reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 //========================================================================================
