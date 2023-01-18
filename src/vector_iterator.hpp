@@ -29,6 +29,8 @@ vector_iterator() :p(0) {}
 vector_iterator(pointer x) :p(x) {}
 vector_iterator(const vector_iterator& mit) : p(mit.p) {}
 
+// const_iter(iter)
+
 vector_iterator& operator++() {++p;return *this;}
 vector_iterator operator++(int) {
 	vector_iterator tmp(*this);

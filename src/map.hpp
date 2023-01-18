@@ -17,6 +17,7 @@ class map
 {
 public:
 // typedefs:
+
 	typedef Key										key_type;
 	typedef T										mapped_type;
 	typedef ft::pair<const Key, T>					value_type;

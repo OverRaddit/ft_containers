@@ -249,7 +249,7 @@ struct rb_tree_node
 
 	rb_tree_node() : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(Tp())
 	{}
-	rb_tree_node(Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
+	rb_tree_node(const Tp val) : _is_black(true), _parent(nullptr), _left(nullptr), _right(nullptr), _value(val)
 	{}
 	rb_tree_node(const rb_tree_node &x)
 		: _is_black(x._is_black), _parent(nullptr), _left(nullptr), _right(nullptr), _value(x._value)
@@ -267,30 +267,28 @@ struct rb_tree_node
 template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
-protected:
-
-	friend class rb_tree_node;
-
 public:
-	typedef Tp											value_type;
-	//typedef Compare										key_compare;
+	// 그대로 써도 괜찮을까? value_type에서 const를 뽑아야함.
 	typedef Alloc										allocator_type;
 
+	typedef typename allocator_type::value_type			value_type;
 	typedef typename allocator_type::reference			reference;
 	typedef typename allocator_type::const_reference	const_reference;
 	typedef typename allocator_type::pointer			pointer;
 	typedef typename allocator_type::const_pointer		const_pointer;
 
-	// node type=
-
-	typedef typename Alloc::template rebind<rb_tree_node>::other	node_alloc_type;
-	typedef typename node_alloc_type::pointer						link_type;
-	typedef typename node_alloc_type::size_type						size_type;
-	typedef typename node_alloc_type::difference_type				difference_type;
+	// node type
+	typedef rb_tree_node<value_type>							node_type;
+	typedef typename Alloc::template rebind<node_type>::other	node_alloc_type;
+	// node_alloc_type이 const를 걸러내주지 못한다.
+	typedef typename node_alloc_type::pointer									link_type;
+	typedef typename node_alloc_type::const_pointer				const_link_type;
+	typedef typename node_alloc_type::size_type					size_type;
+	typedef typename node_alloc_type::difference_type			difference_type;
 
 	// custom type
-	typedef typename value_type::first_type							key_type;
-	typedef typename value_type::second_type						mapped_type;
+	typedef typename value_type::first_type						key_type;
+	typedef typename value_type::second_type					mapped_type;
 
 protected:
 	link_type _begin;	// 최솟값을 가리킴
@@ -346,31 +344,35 @@ protected:
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
 public:
+	class iterator;
+	class const_iterator;
 
-	template <class T, class Tree>
+	template <class T>
 	class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
 	{
 	public:
-		typedef T											value_type;
-		typedef ptrdiff_t									difference_type;
-		typedef T*											pointer;
-		typedef T&											reference;
-		typedef typename std::bidirectional_iterator_tag	iterator_category;
 
-		friend class rb_tree;
-		friend class const_iterator;
+		typedef typename iterator_traits<__iterator>::value_type		value_type;
+		typedef typename iterator_traits<__iterator>::difference_type	difference_type;
+		typedef typename iterator_traits<__iterator>::pointer			pointer;
+		typedef typename iterator_traits<__iterator>::reference			reference;
+		typedef typename std::bidirectional_iterator_tag		iterator_category;
+
+		// friend class rb_tree;
+		// friend class const_iterator;
+		// friend class iterator;
 
 	private:
-		typedef typename Tree::link_type					NodePtr;
+		//typedef typename Tree::link_type					NodePtr;
 
 	protected:
-		NodePtr node;
-		__iterator(NodePtr x) : node(x) {}
+		pointer node;
+		__iterator(pointer x) : node(x) {}
 	public:
 		__iterator() : node(nullptr) {}
-		__iterator(const __iterator& x) : node(x.node) {}
+		//__iterator(const __iterator<T>& x) : node(x.node) {}
+		__iterator(const const_iterator& x) : node(x.node) {}
 
-		template <class U>
 		__iterator& operator=(const __iterator& x)
 		{
 			node = x.node;
@@ -382,23 +384,23 @@ public:
 		// 뭐가 맞는지 모르겠다.
 		// bool operator==(const __iterator& x) const { return node == x.node; }
 		// bool operator!=(const __iterator& x) const { return node != x.node;}
-		template <class U, class _Tree>
-		bool operator==(const __iterator<U, _Tree>& x) const { return node == x.node; }
-		template <class U, class _Tree>
-		bool operator!=(const __iterator<U, _Tree>& x) const { return node != x.node;}
+		template <class U>
+		bool operator==(const __iterator<U>& x) const { return node == x.node; }
+		template <class U>
+		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
 
 		Tp& operator*() const { return node->_value; }
 		Tp* operator->() const { return &(node->_value); }
 
 		// __tree_next_iter를 구현해야함.
-		__iterator& operator++() { node = __tree_next_iter<NodePtr>(node); return *this; }
+		__iterator& operator++() { node = __tree_next_iter<pointer>(node); return *this; }
 		__iterator operator++(int)
 		{
 			__iterator tmp = *this;
 			++*this;
 			return tmp;
 		}
-		__iterator& operator--() { node = __tree_prev_iter<NodePtr>(node); return *this; }
+		__iterator& operator--() { node = __tree_prev_iter<pointer>(node); return *this; }
 		__iterator operator--(int)
 		{
 			__iterator tmp = *this;
@@ -410,10 +412,10 @@ public:
 	// 외않되
 	//friend __iterator;
 
-	typedef __iterator<Tp, rb_tree>							iterator;
-	typedef __iterator<const Tp, rb_tree>					const_iterator;
-	typedef ft::reverse_iterator<iterator>					reverse_iterator;
-	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+	typedef __iterator<value_type>							iterator;
+	typedef __iterator<const value_type>					const_iterator;
+	typedef ft::reverse_iterator<iterator>			reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 //========================================================================================
 
 // Custom member func
@@ -424,7 +426,7 @@ private:
 	{
 		// allocate를 하면 construct를 어떻게 해야하지?
 		_end = _alloc.allocate(1);
-		_alloc.construct(_end, rb_tree_node());
+		_alloc.construct(_end, rb_tree_node<Tp>());
 		_begin = _end;
 	}
 	iterator __find(const key_type& k)
@@ -471,7 +473,7 @@ private:
 
 		// 내가 알던 초기화방식
 		link_type n = _alloc.allocate(1);
-		_alloc.construct(n, rb_tree_node(v));
+		_alloc.construct(n, rb_tree_node<Tp>(v));
 		// placement new 방식
 		// link_type n;
 		// new(n) rb_tree_node(v);
@@ -586,6 +588,7 @@ public:
 // const_iterator의 생성자 인자로 iterator를 넘겨줘도 돌아갈까?
 
 	iterator begin() { return iterator(_begin); };
+	// 외않되
 	const_iterator begin() const { return const_iterator(_begin); };
 	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_iterator(_end); };

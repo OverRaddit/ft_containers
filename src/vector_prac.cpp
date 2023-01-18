@@ -8,6 +8,9 @@
 #include <iostream>
 #include <map>
 #include <string>
+
+#include <typeinfo>
+
 #define _vector ft::vector
 #define _map ft::map
 #define _make_pair ft::make_pair
@@ -144,14 +147,64 @@ std::vector<int> assign_overload_test(_map<T, V> mp) {
     return v;
 }
 
+template<class X, class Y, class Z>
+struct A
+{
+	typedef X one;
+	typedef Y two;
+	typedef Z three;
+
+	one num;
+};
+
+template<class X, class Y, class Z>
+struct B
+{
+	typedef X one;
+	typedef Y two;
+	typedef Z three;
+
+	two num;
+};
+
 
 int main()
 {
+	// A<int,int,int> a;
+	// B<int,int,int> b;
+
+
+	// a.num = 0;
+	// b.num = 1;
+	// a.num = b.num;
+	// std::cout << a.num << std::endl;
+	// if (typeid(a.num) == typeid(b.num))
+	// 	cout << "equal";
+
 	std::map<int, int> one;
 	ft::map<int, int> two;
-	ft::map<int, int> three = two;
-	vector<int> v1;
-	vector<int> v2;
+
+	// const ft::vector<int> myVec;
+	// ft::vector<int>::iterator it1 = myVec.begin();
+
+	// std::vector<int> myVec2;
+	// std::vector<int>::const_iterator it2 = myVec2.begin();
+
+	ft::map<int,int>::const_iterator itc(two.begin());
+
+	ft::map<int, int>::iterator it;
+	const ft::map<int, int>::iterator cit;
+
+	//const_iterator(iterator);
+	//const ft::map<int, int> c_two;
+	//ft::rb_tree<ft::pair<const int,int>, std::less<const int>, std::allocator<ft::pair<const int,int > > > mytree(std::less<const int>, false);
+
+	const ft::rb_tree<ft::pair<const int,int>, std::less<const int>, std::allocator<ft::pair<const int,int > > >::link_type a = 0;
+	std::cout << typeid(a).name() << std::endl;
+	// c_two.begin();
+
+	// vector<int> v1;
+	// vector<int> v2;
 
 	// std::cout << "one" << std::endl;
 	// v1 = insert_test(one);
@@ -162,10 +215,10 @@ int main()
 	// for(int i=0;i<v2.size();i++)
 	//     std::cout << v2[i] << std::endl;
 
-	std::map<int, int> mp;
-	std::map<int, int, std::plus<int> >::iterator mpiter = mp.end();
-	_map<int, int> mp3;
-	_map<int, int, std::plus<int> >::iterator mp3iter = mp3.end();
+	// std::map<int, int> mp;
+	// std::map<int, int, std::plus<int> >::iterator mpiter = mp.end();
+	// _map<int, int> mp3;
+	// _map<int, int, std::plus<int> >::iterator mp3iter = mp3.end();
 	// _map<int, int>::iterator justiter = mp3.end();
 	// vector<int> v;
 	// for (typename _map<int, int>::iterator it = --mp3.end(); it != mp3.begin(); it--) { v.push_back(it->first); }

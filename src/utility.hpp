@@ -5,3 +5,4 @@
 #include "is_integral.hpp"
 #include "lexicographical_compare.hpp"
 #include "reverse_iterator.hpp"
+#include "iterator_traits.hpp"
