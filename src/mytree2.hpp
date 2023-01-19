@@ -345,25 +345,34 @@ protected:
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
 public:
+	template <class Node>
+	class __const_iterator;
+	template <class Node>
+	class __iterator;
+	friend class __const_iterator<rb_tree_node<value_type> >;
+	friend class __iterator<rb_tree_node<value_type> >;
 
-	template <class T>
+
+	template <class Node>
 	class __iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
 	{
+		friend class __const_iterator<Node>;
+		friend class rb_tree<Tp, Compare, Alloc>;
 	public:
 		// C++11 함수이므로 커스텀 함수로 제작할것.
 		//typedef typename std::remove_const<T>::type value_type;
-		typedef T									value_type;
+		typedef Node								value_type;
 		typedef ptrdiff_t							difference_type;
-		typedef T*									pointer;
-		typedef T&									reference;
+		typedef Node*								pointer;
+		typedef Node&								reference;
 		typedef bidirectional_iterator_tag			iterator_category;
 
 	protected:
 		pointer node;
-		__iterator(pointer x) : node(x) {}
 	public:
+		__iterator(pointer x) : node(x) {}
 		__iterator() : node(nullptr) {}
-		__iterator(const __iterator<const T>& x) : node(x.node) {}
+		__iterator(const __const_iterator<Node>& x) : node(x.node) {}
 		__iterator(const __iterator& x) : node(x.node) {}
 
 		__iterator& operator=(const __iterator& x)
@@ -375,15 +384,13 @@ public:
 		//iterator(const const_iterator& x) : node(x.node) {}
 
 		// 뭐가 맞는지 모르겠다.
-		// bool operator==(const __iterator& x) const { return node == x.node; }
-		// bool operator!=(const __iterator& x) const { return node != x.node;}
-		template <class U>
-		bool operator==(const __iterator<U>& x) const { return node == x.node; }
-		template <class U>
-		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+		// bool operator==(const iterator& x) const { return node == x.node; }
+		// bool operator!=(const iterator& x) const { return node != x.node;}
+		bool operator==(const __iterator& x) const { return node == x.node; }
+		bool operator!=(const __iterator& x) const { return node != x.node;}
 
-		Tp& operator*() const { return node->_value; }
-		Tp* operator->() const { return &(node->_value); }
+		Node& operator*() const { return node->_value; }
+		Node* operator->() const { return &(node->_value); }
 
 		// __tree_next_iter를 구현해야함.
 		__iterator& operator++() { node = __tree_next_iter<pointer>(node); return *this; }
@@ -403,44 +410,41 @@ public:
 	};
 
 	// const_iterator 특수화
-	template <class T>
-	class __iterator<T const> : public std::iterator<std::bidirectional_iterator_tag, T>
+	template <class Node>
+	class __const_iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
 	{
+		friend class __iterator<Node>;
+		friend class rb_tree<Tp, Compare, Alloc>;
 	public:
-		typedef const T								value_type;
-		typedef ptrdiff_t							difference_type;
-		typedef const T*							pointer;
-		typedef const T&							reference;
-		typedef bidirectional_iterator_tag			iterator_category;
+		typedef Node								value_type;
+		typedef ptrdiff_t						difference_type;
+		typedef Node*								pointer;
+		typedef Node&								reference;
+		typedef bidirectional_iterator_tag		iterator_category;
 
 	protected:
 		pointer node;
-		__iterator(pointer x) : node(x) {}
 	public:
-		__iterator() : node(nullptr) {}
-		__iterator(const __iterator& x) : node(x.node) {}
+		__const_iterator(pointer x) : node(x) {}
+		__const_iterator() : node(nullptr) {}
+		__const_iterator(const __const_iterator& x) : node(x.node) {}
 
-		__iterator& operator=(const __iterator& x)
+		__const_iterator& operator=(const __const_iterator& x)
 		{
 			node = x.node;
 			return *this;
 		}
-		template <class U>
-		bool operator==(const __iterator<U>& x) const { return node == x.node; }
-		template <class U>
-		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+		bool operator==(const __const_iterator& x) const { return node == x.node; }
+		bool operator!=(const __const_iterator& x) const { return node != x.node;}
 
-		Tp& operator*() const { return node->_value; }
-		Tp* operator->() const { return &(node->_value); }
+		Node& operator*() const { return node->_value; }
+		Node* operator->() const { return &(node->_value); }
 	};
 
-	// 외않되
-	//friend __iterator;
-
-	typedef __iterator<value_type>							iterator;
-	typedef __iterator<const value_type>					const_iterator;
-	typedef ft::reverse_iterator<iterator>			reverse_iterator;
-	typedef ft::reverse_iterator<const_iterator>	const_reverse_iterator;
+	typedef	__iterator<rb_tree_node<value_type> >				iterator;
+	typedef __const_iterator<rb_tree_node<value_type> >		const_iterator;
+	typedef ft::reverse_iterator<iterator>					reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 //========================================================================================
 
 // Custom member func
