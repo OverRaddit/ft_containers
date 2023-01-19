@@ -189,59 +189,107 @@ __tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
 
 
 // _tree_iterator
-// template <class T, class NodePtr>
-// class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
-// {
-// public:
-// 	typedef T											value_type;
-// 	typedef ptrdiff_t									difference_type;
-// 	typedef T*											pointer;
-// 	typedef T&											reference;
-// 	typedef typename std::bidirectional_iterator_tag	iterator_category;
 
-// 	friend class rb_tree;
-// 	friend class const_iterator;
+template <class Node>
+class __const_iterator;
+template <class Node>
+class __iterator;
 
-// protected:
-// 	NodePtr node;
-// 	__iterator(NodePtr x) : node(x) {}
-// public:
-// 	__iterator() : node(nullptr) {}
-// 	template <class U>
-// 	__iterator(const __iterator<U>& x) : node(x.node) {}
-// 	// const_iterator에 접근할 수 없다.
-// 	//iterator(const const_iterator& x) : node(x.node) {}
+template <class Node>
+class __iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
+{
+	friend class __const_iterator<Node>;
+	//friend class rb_tree<Tp, Compare, Alloc>;
+public:
+	// C++11 함수이므로 커스텀 함수로 제작할것.
+	//typedef typename std::remove_const<T>::type value_type;
+	typedef Node								value_type;
+	typedef ptrdiff_t							difference_type;
+	typedef Node*								pointer;
+	typedef Node&								reference;
+	typedef bidirectional_iterator_tag			iterator_category;
 
-// 	// 뭐가 맞는지 모르겠다.
-// 	// bool operator==(const __iterator& x) const { return node == x.node; }
-// 	// bool operator!=(const __iterator& x) const { return node != x.node;}
-// 	template <class U>
-// 	bool operator==(const __iterator<U>& x) const { return node == x.node; }
-// 	template <class U>
-// 	bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+	typedef typename Node::data				data;
+protected:
+public:
+	pointer node;
+	__iterator(pointer x) : node(x) {}
+	__iterator() : node(nullptr) {}
+	__iterator(const __const_iterator<Node>& x) : node(x.node) {}
+	__iterator(const __iterator& x) : node(x.node) {}
 
-// 	Tp& operator*() const { return node->_value; }
-// 	Tp* operator->() const { return &(node->_value); }
+	__iterator& operator=(const __iterator& x)
+	{
+		node = x.node;
+		return *this;
+	}
+	// const_iterator에 접근할 수 없다.
+	//iterator(const const_iterator& x) : node(x.node) {}
 
-// 	// __tree_next_iter를 구현해야함.
-// 	__iterator& operator++() { node = __tree_next_iter<NodePtr>(node); return *this; }
-// 	__iterator operator++(int)
-// 	{
-// 		__iterator tmp = *this;
-// 		++*this;
-// 		return tmp;
-// 	}
-// 	__iterator& operator--() { node = __tree_prev_iter<NodePtr>(node); return *this; }
-// 	__iterator operator--(int)
-// 	{
-// 		__iterator tmp = *this;
-// 		--*this;
-// 		return tmp;
-// 	}
-// };
+	// 뭐가 맞는지 모르겠다.
+	// bool operator==(const iterator& x) const { return node == x.node; }
+	// bool operator!=(const iterator& x) const { return node != x.node;}
+	bool operator==(const __iterator& x) const { return node == x.node; }
+	bool operator!=(const __iterator& x) const { return node != x.node;}
+
+	data& operator*() const { return node->_value; }
+	data* operator->() const { return &(node->_value); }
+
+	// __tree_next_iter를 구현해야함.
+	__iterator& operator++() { node = __tree_next_iter<pointer>(node); return *this; }
+	__iterator operator++(int)
+	{
+		__iterator tmp = *this;
+		++*this;
+		return tmp;
+	}
+	__iterator& operator--() { node = __tree_prev_iter<pointer>(node); return *this; }
+	__iterator operator--(int)
+	{
+		__iterator tmp = *this;
+		--*this;
+		return tmp;
+	}
+};
+
+template <class Node>
+class __const_iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
+{
+	friend class __iterator<Node>;
+	//friend class rb_tree<Tp, Compare, Alloc>;
+public:
+	typedef Node								value_type;
+	typedef ptrdiff_t						difference_type;
+	typedef Node*								pointer;
+	typedef Node&								reference;
+	typedef bidirectional_iterator_tag		iterator_category;
+
+	typedef typename Node::data					data;
+protected:
+public:
+	pointer node;
+	__const_iterator(pointer x) : node(x) {}
+	__const_iterator() : node(nullptr) {}
+	__const_iterator(const __const_iterator& x) : node(x.node) {}
+
+	__const_iterator& operator=(const __const_iterator& x)
+	{
+		node = x.node;
+		return *this;
+	}
+	bool operator==(const __const_iterator& x) const { return node == x.node; }
+	bool operator!=(const __const_iterator& x) const { return node != x.node;}
+
+	data& operator*() const { return node->_value; }
+	data* operator->() const { return &(node->_value); }
+};
+
+
 template <class Tp>
 struct rb_tree_node
 {
+	typedef Tp data;
+
 	bool			_is_black;
 	rb_tree_node*	_parent;
 	rb_tree_node*	_left;
@@ -269,7 +317,6 @@ template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
 public:
-	// 그대로 써도 괜찮을까? value_type에서 const를 뽑아야함.
 	typedef Alloc										allocator_type;
 
 	typedef typename allocator_type::value_type			value_type;
@@ -281,8 +328,7 @@ public:
 	// node type
 	typedef rb_tree_node<value_type>							node_type;
 	typedef typename Alloc::template rebind<node_type>::other	node_alloc_type;
-	// node_alloc_type이 const를 걸러내주지 못한다.
-	typedef typename node_alloc_type::pointer									link_type;
+	typedef typename node_alloc_type::pointer					link_type;
 	typedef typename node_alloc_type::const_pointer				const_link_type;
 	typedef typename node_alloc_type::size_type					size_type;
 	typedef typename node_alloc_type::difference_type			difference_type;
@@ -345,101 +391,16 @@ protected:
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
 public:
-	template <class Node>
-	class __const_iterator;
-	template <class Node>
-	class __iterator;
+	// template <class Node>
+	// class __const_iterator;
+	// template <class Node>
+	// class __iterator;
+
+
+
+
 	friend class __const_iterator<rb_tree_node<value_type> >;
 	friend class __iterator<rb_tree_node<value_type> >;
-
-
-	template <class Node>
-	class __iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
-	{
-		friend class __const_iterator<Node>;
-		friend class rb_tree<Tp, Compare, Alloc>;
-	public:
-		// C++11 함수이므로 커스텀 함수로 제작할것.
-		//typedef typename std::remove_const<T>::type value_type;
-		typedef Node								value_type;
-		typedef ptrdiff_t							difference_type;
-		typedef Node*								pointer;
-		typedef Node&								reference;
-		typedef bidirectional_iterator_tag			iterator_category;
-
-	protected:
-		pointer node;
-	public:
-		__iterator(pointer x) : node(x) {}
-		__iterator() : node(nullptr) {}
-		__iterator(const __const_iterator<Node>& x) : node(x.node) {}
-		__iterator(const __iterator& x) : node(x.node) {}
-
-		__iterator& operator=(const __iterator& x)
-		{
-			node = x.node;
-			return *this;
-		}
-		// const_iterator에 접근할 수 없다.
-		//iterator(const const_iterator& x) : node(x.node) {}
-
-		// 뭐가 맞는지 모르겠다.
-		// bool operator==(const iterator& x) const { return node == x.node; }
-		// bool operator!=(const iterator& x) const { return node != x.node;}
-		bool operator==(const __iterator& x) const { return node == x.node; }
-		bool operator!=(const __iterator& x) const { return node != x.node;}
-
-		Node& operator*() const { return node->_value; }
-		Node* operator->() const { return &(node->_value); }
-
-		// __tree_next_iter를 구현해야함.
-		__iterator& operator++() { node = __tree_next_iter<pointer>(node); return *this; }
-		__iterator operator++(int)
-		{
-			__iterator tmp = *this;
-			++*this;
-			return tmp;
-		}
-		__iterator& operator--() { node = __tree_prev_iter<pointer>(node); return *this; }
-		__iterator operator--(int)
-		{
-			__iterator tmp = *this;
-			--*this;
-			return tmp;
-		}
-	};
-
-	// const_iterator 특수화
-	template <class Node>
-	class __const_iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
-	{
-		friend class __iterator<Node>;
-		friend class rb_tree<Tp, Compare, Alloc>;
-	public:
-		typedef Node								value_type;
-		typedef ptrdiff_t						difference_type;
-		typedef Node*								pointer;
-		typedef Node&								reference;
-		typedef bidirectional_iterator_tag		iterator_category;
-
-	protected:
-		pointer node;
-	public:
-		__const_iterator(pointer x) : node(x) {}
-		__const_iterator() : node(nullptr) {}
-		__const_iterator(const __const_iterator& x) : node(x.node) {}
-
-		__const_iterator& operator=(const __const_iterator& x)
-		{
-			node = x.node;
-			return *this;
-		}
-		bool operator==(const __const_iterator& x) const { return node == x.node; }
-		bool operator!=(const __const_iterator& x) const { return node != x.node;}
-
-		Node& operator*() const { return node->_value; }
-		Node* operator->() const { return &(node->_value); }
-	};
 
 	typedef	__iterator<rb_tree_node<value_type> >				iterator;
 	typedef __const_iterator<rb_tree_node<value_type> >		const_iterator;

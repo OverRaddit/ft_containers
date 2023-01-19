@@ -44,6 +44,14 @@ void gshim_iter_test()
 
 int main()
 {
-	gshim_iter_test();
+	//gshim_iter_test();
+
+	ft::map<int,int> m;
+	m.insert(_make_pair(1,1));
+	m.insert(_make_pair(2,2));
+	m.insert(_make_pair(3,3));
+
+	for(ft::map<int,int>::iterator it = m.begin(); it != m.end(); ++it)
+		std::cout << it->first << std::endl;
 
 }
