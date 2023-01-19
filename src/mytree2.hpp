@@ -31,6 +31,7 @@ iterators invalidated are those referring to the deleted node.
 #define __TREE
 
 # include "utility.hpp"
+# include <type_traits>
 
 namespace ft
 {
@@ -344,34 +345,26 @@ protected:
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
 public:
-	class iterator;
-	class const_iterator;
 
 	template <class T>
-	class __iterator : public std::iterator<std::bidirectional_iterator_tag, T>
+	class __iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
 	{
 	public:
-
-		typedef typename iterator_traits<__iterator>::value_type		value_type;
-		typedef typename iterator_traits<__iterator>::difference_type	difference_type;
-		typedef typename iterator_traits<__iterator>::pointer			pointer;
-		typedef typename iterator_traits<__iterator>::reference			reference;
-		typedef typename std::bidirectional_iterator_tag		iterator_category;
-
-		// friend class rb_tree;
-		// friend class const_iterator;
-		// friend class iterator;
-
-	private:
-		//typedef typename Tree::link_type					NodePtr;
+		// C++11 함수이므로 커스텀 함수로 제작할것.
+		//typedef typename std::remove_const<T>::type value_type;
+		typedef T									value_type;
+		typedef ptrdiff_t							difference_type;
+		typedef T*									pointer;
+		typedef T&									reference;
+		typedef bidirectional_iterator_tag			iterator_category;
 
 	protected:
 		pointer node;
 		__iterator(pointer x) : node(x) {}
 	public:
 		__iterator() : node(nullptr) {}
-		//__iterator(const __iterator<T>& x) : node(x.node) {}
-		__iterator(const const_iterator& x) : node(x.node) {}
+		__iterator(const __iterator<const T>& x) : node(x.node) {}
+		__iterator(const __iterator& x) : node(x.node) {}
 
 		__iterator& operator=(const __iterator& x)
 		{
@@ -407,6 +400,38 @@ public:
 			--*this;
 			return tmp;
 		}
+	};
+
+	// const_iterator 특수화
+	template <class T>
+	class __iterator<T const> : public std::iterator<std::bidirectional_iterator_tag, T>
+	{
+	public:
+		typedef const T								value_type;
+		typedef ptrdiff_t							difference_type;
+		typedef const T*							pointer;
+		typedef const T&							reference;
+		typedef bidirectional_iterator_tag			iterator_category;
+
+	protected:
+		pointer node;
+		__iterator(pointer x) : node(x) {}
+	public:
+		__iterator() : node(nullptr) {}
+		__iterator(const __iterator& x) : node(x.node) {}
+
+		__iterator& operator=(const __iterator& x)
+		{
+			node = x.node;
+			return *this;
+		}
+		template <class U>
+		bool operator==(const __iterator<U>& x) const { return node == x.node; }
+		template <class U>
+		bool operator!=(const __iterator<U>& x) const { return node != x.node;}
+
+		Tp& operator*() const { return node->_value; }
+		Tp* operator->() const { return &(node->_value); }
 	};
 
 	// 외않되

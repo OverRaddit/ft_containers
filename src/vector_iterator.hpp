@@ -6,13 +6,13 @@
 namespace ft
 {
 
-//typename value_type
+// 해당 이터레이터를 태그이터레이터로 감싸면?
 
 // vector's iterator
 // 왜 상속받는 건지, 무슨 효과가 있는건지 잘 모르겠다.
 //
 template <class T>
-struct vector_iterator : public std::iterator<std::random_access_iterator_tag, T>
+struct vector_iterator : public ft::iterator<std::random_access_iterator_tag, T>
 {
 typedef typename vector_iterator::value_type				value_type;
 typedef typename vector_iterator::difference_type			difference_type;

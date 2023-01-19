@@ -28,40 +28,54 @@ public:
 	typedef T&							reference;
 };
 
+// const_iter
 template <class T>
 struct iterator_traits <const T*>
 {
 public:
-	typedef random_access_iterator_tag	iterator_category;
-	typedef T							value_type;
+	//typedef random_access_iterator_tag	iterator_category;
+	typedef input_iterator_tag	iterator_category;
+	typedef const T						value_type;
 	typedef ptrdiff_t					difference_type;
-	typedef T*							pointer;
-	typedef T&							reference;
+	typedef const T*					pointer;
+	typedef const T&					reference;
 };
 
-// 이거 매우필요.
-template <class T>
-struct iterator_traits <const T>
-{
-public:
-	typedef random_access_iterator_tag	iterator_category;
-	typedef T							value_type;
-	typedef ptrdiff_t					difference_type;
-	typedef T*							pointer;
-	typedef T&							reference;
-};
-
-
-// template <class T, class tag>
-// struct iterator_traits <const T*, random_access_iterator_tag>
+// // const iter
+// template <class T>
+// struct iterator_traits <T const *>
 // {
 // public:
-// 	// typedef random_access_iterator_tag	iterator_category;
-// 	// typedef T							value_type;
-// 	// typedef ptrdiff_t					difference_type;
-// 	// typedef T*							pointer;
-// 	// typedef T&							reference;
+// 	typedef random_access_iterator_tag	iterator_category;
+// 	typedef T							value_type;
+// 	typedef ptrdiff_t					difference_type;
+// 	typedef T*							pointer;
+// 	typedef T&							reference;
 // };
+
+// // const const_iter
+// template <class T>
+// struct iterator_traits <const T const*>
+// {
+// public:
+// 	typedef random_access_iterator_tag	iterator_category;
+// 	typedef T							value_type;
+// 	typedef ptrdiff_t					difference_type;
+// 	typedef T*							pointer;
+// 	typedef T&							reference;
+// };
+
+
+template<class _Category, class _Tp, class _Distance = ptrdiff_t,
+         class _Pointer = _Tp*, class _Reference = _Tp&>
+struct iterator
+{
+	typedef _Tp        value_type;
+	typedef _Distance  difference_type;
+	typedef _Pointer   pointer;
+	typedef _Reference reference;
+	typedef _Category  iterator_category;
+};
 
 }
 #endif
