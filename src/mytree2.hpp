@@ -33,160 +33,9 @@ iterators invalidated are those referring to the deleted node.
 # include "utility.hpp"
 # include <type_traits>
 
+# include "tree_algorithm.hpp"
 namespace ft
 {
-
-
-// algorithm
-
-template <class _NodePtr>
-inline bool __tree_is_left_child(_NodePtr __x) throw()
-{
-	return __x == __x->_parent->_left;
-}
-
-template <class _NodePtr>
-inline _NodePtr __tree_min(_NodePtr __x) throw()
-{
-	while (__x->_left != nullptr)
-		__x = __x->_left;
-	return __x;
-}
-
-template <class _NodePtr>
-inline _NodePtr __tree_max(_NodePtr __x) throw()
-{
-	while (__x->_right != nullptr)
-		__x = __x->_right;
-	return __x;
-}
-
-template <class _NodePtr>
-inline _NodePtr __tree_next_iter(_NodePtr __x) throw()
-{
-	if (__x->_right != nullptr)
-		return __tree_min(__x->_right);
-	while (!__tree_is_left_child(__x))
-		__x = __x->_parent;
-	return __x->_parent;
-}
-
-template <class _NodePtr>
-inline _NodePtr __tree_prev_iter(_NodePtr __x) throw()
-{
-	if (__x->_left != nullptr)
-		return __tree_max(__x->_left);
-	_NodePtr __xx = __x;
-	while (__tree_is_left_child(__xx))
-		__xx = __xx->_parent;
-	return __xx->_parent;
-}
-
-template <class _NodePtr>
-_NodePtr __tree_next(_NodePtr __x) throw()
-{
-	if (__x->__right_ != nullptr)
-		return __tree_min(__x->__right_);
-	while (!__tree_is_left_child(__x))
-		__x = __x->_parent;
-	return __x->_parent;
-}
-
-template <class _NodePtr>
-void __tree_left_rotate(_NodePtr __x) throw()
-{
-	_NodePtr __y = __x->_right;
-	__x->_right = __y->_left;
-	if (__x->_right != nullptr)
-		__x->_right->_parent = __x;
-	__y->_parent = __x->_parent;
-	if (__tree_is_left_child(__x))
-		__x->_parent->_left = __y;
-	else
-		__x->_parent->_right = __y;
-	__y->_left = __x;
-	__x->_parent = __y;
-}
-
-template <class _NodePtr>
-void __tree_right_rotate(_NodePtr __x) throw()
-{
-	_NodePtr __y = __x->_left;
-	__x->_left = __y->_right;
-	if (__x->_left != nullptr)
-		__x->_left->_parent = __x;
-	__y->_parent = __x->_parent;
-	if (__tree_is_left_child(__x))
-		__x->_parent->_left = __y;
-	else
-		__x->_parent->_right = __y;
-	__y->_right = __x;
-	__x->_parent = __y;
-}
-
-template <class _NodePtr>
-void
-__tree_balance_after_insert(_NodePtr __root, _NodePtr __x) _NOEXCEPT
-{
-	__x->_is_black = (int)(__x == __root);
-	while (__x != __root && !__x->_parent->_is_black)
-	{
-		// __x->__parent_ != __root because __x->__parent_->__is_black == false
-		if (__tree_is_left_child(__x->_parent))
-		{
-			_NodePtr __y = __x->_parent->_parent->_right;
-			if (__y != nullptr && !__y->_is_black)
-			{
-				__x = __x->_parent;
-				__x->_is_black = true;
-				__x = __x->_parent;
-				__x->_is_black = (int)(__x == __root);
-				__y->_is_black = true;
-			}
-			else
-			{
-				if (!__tree_is_left_child(__x))
-				{
-					__x = __x->_parent;
-					__tree_left_rotate(__x);
-				}
-				__x = __x->_parent;
-				__x->_is_black = true;
-				__x = __x->_parent;
-				__x->_is_black = false;
-				__tree_right_rotate(__x);
-				break;
-			}
-		}
-		else
-		{
-			_NodePtr __y = __x->_parent->_parent->_left;
-			if (__y != nullptr && !__y->_is_black)
-			{
-				__x = __x->_parent;
-				__x->_is_black = true;
-				__x = __x->_parent;
-				__x->_is_black = __x == __root;
-				__y->_is_black = true;
-			}
-			else
-			{
-				if (__tree_is_left_child(__x))
-				{
-					__x = __x->_parent;
-					__tree_right_rotate(__x);
-				}
-				__x = __x->_parent;
-				__x->_is_black = true;
-				__x = __x->_parent;
-				__x->_is_black = false;
-				__tree_left_rotate(__x);
-				break;
-			}
-		}
-	}
-}
-
 
 // _tree_iterator
 
@@ -196,7 +45,7 @@ template <class Node>
 class __iterator;
 
 template <class Node>
-class __iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
+class __iterator
 {
 	friend class __const_iterator<Node>;
 	//friend class rb_tree<Tp, Compare, Alloc>;
@@ -215,20 +64,15 @@ public:
 	pointer node;
 	__iterator(pointer x) : node(x) {}
 	__iterator() : node(nullptr) {}
-	__iterator(const __const_iterator<Node>& x) : node(x.node) {}
 	__iterator(const __iterator& x) : node(x.node) {}
 
+	// __iterator만 가질 수 있다.
 	__iterator& operator=(const __iterator& x)
 	{
 		node = x.node;
 		return *this;
 	}
-	// const_iterator에 접근할 수 없다.
-	//iterator(const const_iterator& x) : node(x.node) {}
 
-	// 뭐가 맞는지 모르겠다.
-	// bool operator==(const iterator& x) const { return node == x.node; }
-	// bool operator!=(const iterator& x) const { return node != x.node;}
 	bool operator==(const __iterator& x) const { return node == x.node; }
 	bool operator!=(const __iterator& x) const { return node != x.node;}
 
@@ -236,14 +80,14 @@ public:
 	data* operator->() const { return &(node->_value); }
 
 	// __tree_next_iter를 구현해야함.
-	__iterator& operator++() { node = __tree_next_iter<pointer>(node); return *this; }
+	__iterator& operator++() { node = ft::__tree_next_iter<pointer>(node); return *this; }
 	__iterator operator++(int)
 	{
 		__iterator tmp = *this;
 		++*this;
 		return tmp;
 	}
-	__iterator& operator--() { node = __tree_prev_iter<pointer>(node); return *this; }
+	__iterator& operator--() { node = ft::__tree_prev_iter<pointer>(node); return *this; }
 	__iterator operator--(int)
 	{
 		__iterator tmp = *this;
@@ -253,7 +97,7 @@ public:
 };
 
 template <class Node>
-class __const_iterator //: public std::iterator<std::bidirectional_iterator_tag, T>
+class __const_iterator
 {
 	friend class __iterator<Node>;
 	//friend class rb_tree<Tp, Compare, Alloc>;
@@ -282,6 +126,21 @@ public:
 
 	data& operator*() const { return node->_value; }
 	data* operator->() const { return &(node->_value); }
+	__const_iterator& operator++() { node = ft::__tree_next_iter<pointer>(node); return *this; }
+	__const_iterator operator++(int)
+	{
+		__const_iterator tmp = *this;
+		++*this;
+		return tmp;
+	}
+	__const_iterator& operator--() { node = ft::__tree_prev_iter<pointer>(node); return *this; }
+	__const_iterator operator--(int)
+	{
+		__const_iterator tmp = *this;
+		--*this;
+		return tmp;
+	}
+
 };
 
 
@@ -498,7 +357,7 @@ private:
 
 		// 규칙 만족 recolor and rebalance
 		// __tree 2104 번째 줄을 참조.
-		__tree_balance_after_insert<link_type>(root(), n);
+		ft::__tree_balance_after_insert<link_type>(root(), n);
 
 		return iterator(n);
 	}
@@ -546,8 +405,7 @@ public:
 		__init();
 		insert(first, last);
 	};
-	// x에 const 안붙이니까 에러가 났다. 왜났지>?
-	// map의 복사생성자에서 이녀석을 부르는데 map의 복사생성자에서 const파라미터를 받기때문에 여기서의 x도 const여야 한다.
+
 	rb_tree(const rb_tree& x, bool always)
 		: node_count(x.node_count), insert_always(always), key_compare(x.key_compare)
 	{
@@ -564,7 +422,6 @@ public:
 
 		return *this;
 	};
-
 	~rb_tree()
 	{
 		if (!_end)
@@ -575,10 +432,9 @@ public:
 	};
 
 // [O]Iteartors:
-// const_iterator의 생성자 인자로 iterator를 넘겨줘도 돌아갈까?
+// 여기서 const가 붙은 멤버함수를 정의해주기 때문에 Const context일때 const_iterator가 사용되는 것이다.
 
 	iterator begin() { return iterator(_begin); };
-	// 외않되
 	const_iterator begin() const { return const_iterator(_begin); };
 	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_iterator(_end); };
@@ -698,8 +554,18 @@ public:
 		while (first != last) insert(*first++);
 	};
 
-	void erase(iterator position);
-	size_type erase(const key_type& k);
+	void erase(iterator position)
+	{
+		ft::__tree_remove<link_type>(root(), position.node);
+	};
+	// 반환값??
+	size_type erase(const key_type& k)
+	{
+		iterator iter = find(k);
+		if (iter == end())
+			return 0;
+		return 1;
+	};
 	void erase(iterator first, iterator last)
 	{
 		while (first != last) erase(*first++);
@@ -844,12 +710,16 @@ public:
 	};
 
 	typedef ft::pair<iterator, iterator> pair_iterator_iterator;
-
-	// 없을시, upper_bound(k) 2개를 pair에 넣어 반환
-	pair_iterator_iterator equal_range(const key_type& x);
-
 	typedef ft::pair<const_iterator, const_iterator> pair_citerator_citerator;
-	pair_citerator_citerator equal_range(const key_type& x) const;
+
+	pair_iterator_iterator equal_range(const key_type& x)
+	{
+		return pair_iterator_iterator(lower_bound(x), upper_bound(x));
+	};
+	pair_citerator_citerator equal_range(const key_type& x) const
+	{
+		return pair_iterator_iterator(lower_bound(x), upper_bound(x));
+	};
 
 };
 template <class Tp, class Compare, class Alloc>

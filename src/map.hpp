@@ -1,9 +1,6 @@
 #ifndef FT_MAP
 #define FT_MAP
 
-# include <map>
-// #include "rbtree.hpp"
-//# include "tree_refer.hpp"
 # include "utility.hpp"
 # include "mytree2.hpp"
 
@@ -21,11 +18,9 @@ public:
 	typedef Key										key_type;
 	typedef T										mapped_type;
 	typedef ft::pair<const Key, T>					value_type;
-	//typedef ft::pair<Key, T>						value_type;
 	typedef Compare									key_compare;
 	typedef Alloc									allocator_type;
 
-	// 키를 비교하는데 왜 이름이 value_compare?
 	class value_compare
 		: public std::binary_function<value_type, value_type, bool>
 	{
@@ -39,7 +34,6 @@ public:
 	};
 
 private:
-	// allocator도 템플릿 인자로 넣는 트리로 바꿀 것./
 	typedef ft::rb_tree<value_type, key_compare, Alloc> rep_type;
 	rep_type t;  // red-black tree representing map
 public:
