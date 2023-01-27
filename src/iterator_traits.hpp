@@ -21,11 +21,11 @@ template <class T>
 struct iterator_traits <T*>
 {
 public:
-	typedef random_access_iterator_tag	iterator_category;
-	typedef T							value_type;
-	typedef ptrdiff_t					difference_type;
-	typedef T*							pointer;
-	typedef T&							reference;
+	typedef std::random_access_iterator_tag	iterator_category;
+	typedef T								value_type;
+	typedef ptrdiff_t						difference_type;
+	typedef T*								pointer;
+	typedef T&								reference;
 };
 
 // const_iter
@@ -34,37 +34,12 @@ struct iterator_traits <const T*>
 {
 public:
 	//typedef random_access_iterator_tag	iterator_category;
-	typedef input_iterator_tag	iterator_category;
-	typedef const T						value_type;
-	typedef ptrdiff_t					difference_type;
-	typedef const T*					pointer;
-	typedef const T&					reference;
+	typedef std::random_access_iterator_tag			iterator_category;
+	typedef const T							value_type;
+	typedef ptrdiff_t						difference_type;
+	typedef const T*						pointer;
+	typedef const T&						reference;
 };
-
-// // const iter
-// template <class T>
-// struct iterator_traits <T const *>
-// {
-// public:
-// 	typedef random_access_iterator_tag	iterator_category;
-// 	typedef T							value_type;
-// 	typedef ptrdiff_t					difference_type;
-// 	typedef T*							pointer;
-// 	typedef T&							reference;
-// };
-
-// // const const_iter
-// template <class T>
-// struct iterator_traits <const T const*>
-// {
-// public:
-// 	typedef random_access_iterator_tag	iterator_category;
-// 	typedef T							value_type;
-// 	typedef ptrdiff_t					difference_type;
-// 	typedef T*							pointer;
-// 	typedef T&							reference;
-// };
-
 
 template<class _Category, class _Tp, class _Distance = ptrdiff_t,
          class _Pointer = _Tp*, class _Reference = _Tp&>

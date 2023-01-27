@@ -218,7 +218,7 @@ __tree_remove(_NodePtr __root, _NodePtr __z) _NOEXCEPT
     }
     else
     {
-        __y->ft::_parent->_right = __x;
+        __y->_parent->_right = __x;
         // __y can't be root if it is a right child
         __w = __y->_parent->_left;
     }
@@ -232,12 +232,16 @@ __tree_remove(_NodePtr __root, _NodePtr __z) _NOEXCEPT
         if (ft::__tree_is_left_child(__z))
             __y->_parent->_left = __y;
         else
-            __y->ft::_parent->_right = __y;
+            __y->_parent->_right = __y;
         __y->_left = __z->_left;
-        __y->_left->ft::__set_parent(__y);
+
+        //__y->_left->ft::__set_parent(__y);
+        __y->_left->_parent = __y;
+
         __y->_right = __z->_right;
         if (__y->_right != nullptr)
-            __y->_right->ft::__set_parent(__y);
+            //__y->_right->ft::__set_parent(__y);
+            __y->_right->_parent = __y;
         __y->_is_black = __z->_is_black;
         if (__root == __z)
             __root = __y;

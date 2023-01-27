@@ -30,6 +30,7 @@ iterators invalidated are those referring to the deleted node.
 #ifndef __TREE
 #define __TREE
 
+# include <iterator> // distance
 # include "utility.hpp"
 # include <type_traits>
 
@@ -52,17 +53,18 @@ class __iterator
 public:
 	// C++11 함수이므로 커스텀 함수로 제작할것.
 	//typedef typename std::remove_const<T>::type value_type;
-	typedef Node								value_type;
+	typedef typename Node::data					value_type;
 	typedef ptrdiff_t							difference_type;
-	typedef Node*								pointer;
-	typedef Node&								reference;
-	typedef bidirectional_iterator_tag			iterator_category;
+	typedef value_type*							pointer;
+	typedef value_type&							reference;
+	// 다른 <iterator> 함수들의 호환성을 위해 std의 태그를 사용한다.
+	typedef std::bidirectional_iterator_tag		iterator_category;
 
 	typedef typename Node::data				data;
 protected:
 public:
-	pointer node;
-	__iterator(pointer x) : node(x) {}
+	Node* node;
+	__iterator(Node* x) : node(x) {}
 	__iterator() : node(nullptr) {}
 	__iterator(const __iterator& x) : node(x.node) {}
 
@@ -76,18 +78,18 @@ public:
 	bool operator==(const __iterator& x) const { return node == x.node; }
 	bool operator!=(const __iterator& x) const { return node != x.node;}
 
-	data& operator*() const { return node->_value; }
-	data* operator->() const { return &(node->_value); }
+	reference operator*() const { return node->_value; }
+	pointer operator->() const { return &(node->_value); }
 
 	// __tree_next_iter를 구현해야함.
-	__iterator& operator++() { node = ft::__tree_next_iter<pointer>(node); return *this; }
+	__iterator& operator++() { node = ft::__tree_next_iter<Node*>(node); return *this; }
 	__iterator operator++(int)
 	{
 		__iterator tmp = *this;
 		++*this;
 		return tmp;
 	}
-	__iterator& operator--() { node = ft::__tree_prev_iter<pointer>(node); return *this; }
+	__iterator& operator--() { node = ft::__tree_prev_iter<Node*>(node); return *this; }
 	__iterator operator--(int)
 	{
 		__iterator tmp = *this;
@@ -102,18 +104,19 @@ class __const_iterator
 	friend class __iterator<Node>;
 	//friend class rb_tree<Tp, Compare, Alloc>;
 public:
-	typedef Node								value_type;
-	typedef ptrdiff_t						difference_type;
-	typedef Node*								pointer;
-	typedef Node&								reference;
-	typedef bidirectional_iterator_tag		iterator_category;
+	typedef typename Node::data					value_type;
+	typedef ptrdiff_t							difference_type;
+	typedef value_type*							pointer;
+	typedef value_type&							reference;
+	typedef std::bidirectional_iterator_tag		iterator_category;
 
 	typedef typename Node::data					data;
 protected:
 public:
-	pointer node;
-	__const_iterator(pointer x) : node(x) {}
+	Node* node;
+	__const_iterator(Node* x) : node(x) {}
 	__const_iterator() : node(nullptr) {}
+	__const_iterator(const __iterator<Node>& x) : node(x.node) {}
 	__const_iterator(const __const_iterator& x) : node(x.node) {}
 
 	__const_iterator& operator=(const __const_iterator& x)
@@ -124,16 +127,16 @@ public:
 	bool operator==(const __const_iterator& x) const { return node == x.node; }
 	bool operator!=(const __const_iterator& x) const { return node != x.node;}
 
-	data& operator*() const { return node->_value; }
-	data* operator->() const { return &(node->_value); }
-	__const_iterator& operator++() { node = ft::__tree_next_iter<pointer>(node); return *this; }
+	reference operator*() const { return node->_value; }
+	pointer operator->() const { return &(node->_value); }
+	__const_iterator& operator++() { node = ft::__tree_next_iter<Node*>(node); return *this; }
 	__const_iterator operator++(int)
 	{
 		__const_iterator tmp = *this;
 		++*this;
 		return tmp;
 	}
-	__const_iterator& operator--() { node = ft::__tree_prev_iter<pointer>(node); return *this; }
+	__const_iterator& operator--() { node = ft::__tree_prev_iter<Node*>(node); return *this; }
 	__const_iterator operator--(int)
 	{
 		__const_iterator tmp = *this;
@@ -142,7 +145,6 @@ public:
 	}
 
 };
-
 
 template <class Tp>
 struct rb_tree_node
@@ -261,7 +263,7 @@ public:
 	friend class __const_iterator<rb_tree_node<value_type> >;
 	friend class __iterator<rb_tree_node<value_type> >;
 
-	typedef	__iterator<rb_tree_node<value_type> >				iterator;
+	typedef	__iterator<rb_tree_node<value_type> >			iterator;
 	typedef __const_iterator<rb_tree_node<value_type> >		const_iterator;
 	typedef ft::reverse_iterator<iterator>					reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
@@ -270,6 +272,8 @@ public:
 // Custom member func
 //========================================================================================
 private:
+	typedef ft::pair<iterator, iterator> pair_iterator_iterator;
+	typedef ft::pair<const_iterator, const_iterator> pair_citerator_citerator;
 	// __insert, __copy, __erase, init 함수,,
 	void __init()
 	{
@@ -438,10 +442,6 @@ public:
 	const_iterator begin() const { return const_iterator(_begin); };
 	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_iterator(_end); };
-	reverse_iterator rbegin() { return reverse_iterator(_end); };
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(_end); };
-	reverse_iterator rend() { return reverse_iterator(_begin); };
-	const_reverse_iterator rend() const { return const_reverse_iterator(_begin); };
 
 // [O]Capacity:
 
@@ -557,18 +557,20 @@ public:
 	void erase(iterator position)
 	{
 		ft::__tree_remove<link_type>(root(), position.node);
+		delete position.node;
 	};
 	// 반환값??
 	size_type erase(const key_type& k)
 	{
-		iterator iter = find(k);
-		if (iter == end())
-			return 0;
-		return 1;
+		pair_iterator_iterator range = equal_range(k);
+		size_type ret = std::distance<iterator>(range.first, range.second);
+
+		erase(range.first, range.second);
+		return ret;
 	};
 	void erase(iterator first, iterator last)
 	{
-		while (first != last) erase(*first++);
+		while (first != last) erase(first++);
 	};
 
 	void swap(rb_tree& x)
@@ -645,44 +647,41 @@ public:
 	iterator lower_bound(const key_type& k)
 	{
 		link_type x = root();
-		link_type tmp = x;
+		link_type tmp = _end;
 
 		while (x != nullptr)
 		{
 			tmp = x;
-			if (key_compare(k, key(x)))
-				x = x->_left;
-			else if (key_compare(key(x), k))
+			if (key_compare(key(x), k))
 				x = x->_right;
-			// 동일 원소가 없을때만 성립한다.
 			else
-				return iterator(x);
+				x = x->_left;
 		}
 		return iterator(tmp);
 	};
 	const_iterator lower_bound(const key_type& k) const
 	{
 		link_type x = root();
-		link_type tmp = x;
+		link_type tmp = _end;
 
 		while (x != nullptr)
 		{
 			tmp = x;
-			if (key_compare(k, key(x)))
-				x = x->_left;
-			else if (key_compare(key(x), k))
+			if (key_compare(key(x), k))
 				x = x->_right;
-			// 동일 원소가 없을때만 성립한다.
 			else
-				return iterator(x);
+				x = x->_left;
 		}
 		return iterator(tmp);
 	};
+	// tree가 empty일때, __tree_next_iter를 할수없음. _end의 다음값이 없기 때문이다.
 	iterator upper_bound(const key_type& k)
 	{
 		link_type x = root();
-		link_type tmp = x;
+		link_type tmp = _end;
 
+		if (empty())
+			return end();
 		while (x != nullptr)
 		{
 			tmp = x;
@@ -691,13 +690,15 @@ public:
 			else
 				x = x->_right;
 		}
-		return iterator(tmp);
+		return iterator(ft::__tree_next_iter(tmp));
 	};
 	const_iterator upper_bound(const key_type& k) const
 	{
 		link_type x = root();
-		link_type tmp = x;
+		link_type tmp = _end;
 
+		if (empty())
+			return end();
 		while (x != nullptr)
 		{
 			tmp = x;
@@ -709,8 +710,7 @@ public:
 		return iterator(tmp);
 	};
 
-	typedef ft::pair<iterator, iterator> pair_iterator_iterator;
-	typedef ft::pair<const_iterator, const_iterator> pair_citerator_citerator;
+
 
 	pair_iterator_iterator equal_range(const key_type& x)
 	{
@@ -718,7 +718,7 @@ public:
 	};
 	pair_citerator_citerator equal_range(const key_type& x) const
 	{
-		return pair_iterator_iterator(lower_bound(x), upper_bound(x));
+		return pair_citerator_citerator(lower_bound(x), upper_bound(x));
 	};
 
 };

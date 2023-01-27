@@ -47,7 +47,9 @@ public:
 	typedef typename rep_type::const_reverse_iterator			const_reverse_iterator;
 	typedef typename rep_type::difference_type					difference_type;
 	typedef typename rep_type::size_type						size_type;
-
+private:
+	typedef pair<iterator, bool>						pair_iterator_bool;
+public:
 // allocation/deallocation
 
 	// empty
@@ -77,10 +79,10 @@ public:
 	const_iterator begin() const { return t.begin(); }
 	iterator end() { return t.end(); }
 	const_iterator end() const { return t.end(); }
-	reverse_iterator rbegin() { return t.rbegin(); }
-	const_reverse_iterator rbegin() const { return t.rbegin(); }
-	reverse_iterator rend() { return t.rend(); }
-	const_reverse_iterator rend() const { return t.rend(); }
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const { return reverse_iterator(end()); }
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const { return reverse_iterator(begin()); }
 
 // Capacity:
 
@@ -88,14 +90,23 @@ public:
 	size_type size() const { return t.size(); }
 	size_type max_size() const { return t.max_size(); }
 	// insert는 이미 존재하는 원소를 반환하거나 없으면 추가하는 동작이다.
-	reference operator[](const key_type& k)
-		{ return (*((insert(value_type(k, T()))).first)).second; }
+	// 아니,,,, 함수원형이 잘못되어있었다.
+	// 그러면 잘못된 리턴형으로 지금까지 어떻게 동작한거지?
+	mapped_type& operator[] (const key_type& k)
+	//reference operator[](const key_type& k)
+	{
+		pair_iterator_bool ret = insert(value_type(k, T()));
+		// 삽입성공
+		if (ret.second)
+			return (*ret.first).second;
+		// 삽입실패
+		else
+			return (*ret.first).second;
+		//return (*((insert(value_type(k, T()))).first)).second;
+	};
 
 
 // Modifiers:
-	// pair < tree_iter, bool>
-	typedef pair<iterator, bool> pair_iterator_bool;
-
 	// single
 	pair_iterator_bool insert (const value_type& val) { return t.insert(val); };
 	// with hint
@@ -154,7 +165,7 @@ bool operator!= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,A
 	return !(lhs == rhs);
 };
 template <class Key, class T, class Compare, class Alloc>
-bool operator<  ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
+bool operator< ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
 {
 	return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 };
@@ -166,7 +177,7 @@ bool operator<= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,A
 template <class Key, class T, class Compare, class Alloc>
 bool operator>  ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
 {
-	return (lhs <= rhs);
+	return !(lhs <= rhs);
 };
 template <class Key, class T, class Compare, class Alloc>
 bool operator>= ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
