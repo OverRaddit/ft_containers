@@ -556,8 +556,11 @@ public:
 
 	void erase(iterator position)
 	{
+		if (position == begin())
+			_begin = __tree_next_iter(_begin);
 		ft::__tree_remove<link_type>(root(), position.node);
 		delete position.node;
+		node_count--;
 	};
 	// 반환값??
 	size_type erase(const key_type& k)
@@ -651,11 +654,13 @@ public:
 
 		while (x != nullptr)
 		{
-			tmp = x;
 			if (key_compare(key(x), k))
 				x = x->_right;
 			else
+			{
+				tmp = x;
 				x = x->_left;
+			}
 		}
 		return iterator(tmp);
 	};
@@ -670,44 +675,47 @@ public:
 			if (key_compare(key(x), k))
 				x = x->_right;
 			else
+			{
+				tmp = x;
 				x = x->_left;
+			}
 		}
-		return iterator(tmp);
+		return const_iterator(tmp);
 	};
-	// tree가 empty일때, __tree_next_iter를 할수없음. _end의 다음값이 없기 때문이다.
+
 	iterator upper_bound(const key_type& k)
 	{
 		link_type x = root();
 		link_type tmp = _end;
 
-		if (empty())
-			return end();
 		while (x != nullptr)
 		{
-			tmp = x;
 			if (key_compare(k, key(x)))
+			{
+				tmp = x;
 				x = x->_left;
+			}
 			else
 				x = x->_right;
 		}
-		return iterator(ft::__tree_next_iter(tmp));
+		return iterator(tmp);
 	};
 	const_iterator upper_bound(const key_type& k) const
 	{
 		link_type x = root();
 		link_type tmp = _end;
 
-		if (empty())
-			return end();
 		while (x != nullptr)
 		{
-			tmp = x;
 			if (key_compare(k, key(x)))
+			{
+				tmp = x;
 				x = x->_left;
+			}
 			else
 				x = x->_right;
 		}
-		return iterator(tmp);
+		return const_iterator(tmp);
 	};
 
 

@@ -271,7 +271,15 @@ std::vector<int> erase_test_1(_map<T, V> mp) {
     v.push_back(it->first);
     v.push_back(mp.erase(-5));
     v.push_back(mp.size());
+
+	for(typename _map<T,V>::iterator a = mp.begin(); a != mp.end() ; a++)
+		std::cout << (*a).first << ", " << (*a).second << std::endl;
+
     v.push_back(mp.erase(0));
+
+	for(typename _map<T,V>::iterator a = mp.begin(); a != mp.end() ; a++)
+		std::cout << (*a).first << ", " << (*a).second << std::endl;
+
     v.push_back(mp.size());
     it = mp.begin();
     v.push_back(it->first);
