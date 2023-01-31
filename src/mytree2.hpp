@@ -257,9 +257,6 @@ public:
 	// template <class Node>
 	// class __iterator;
 
-
-
-
 	friend class __const_iterator<rb_tree_node<value_type> >;
 	friend class __iterator<rb_tree_node<value_type> >;
 
@@ -566,7 +563,7 @@ public:
 	size_type erase(const key_type& k)
 	{
 		pair_iterator_iterator range = equal_range(k);
-		size_type ret = std::distance<iterator>(range.first, range.second);
+		size_type ret = std::distance(range.first, range.second);
 
 		erase(range.first, range.second);
 		return ret;
@@ -607,7 +604,7 @@ public:
 
 // [O]Observers:
 
-	Compare key_comp() const { return key_comp(); }
+	Compare key_comp() const { return key_compare; }
 
 // map operations:
 
@@ -646,7 +643,10 @@ public:
 		return const_iterator(tmp);
 	};
 	// 특정키값이 있는지 찾을것.
-	size_type count(const key_type& k) const { return (find(k) == _end) ? 0 : 1; };
+	size_type count(const key_type& k) const
+	{
+		return std::distance(lower_bound(k), upper_bound(k));
+	};
 	iterator lower_bound(const key_type& k)
 	{
 		link_type x = root();
@@ -717,8 +717,6 @@ public:
 		}
 		return const_iterator(tmp);
 	};
-
-
 
 	pair_iterator_iterator equal_range(const key_type& x)
 	{
