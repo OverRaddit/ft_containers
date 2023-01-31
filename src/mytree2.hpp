@@ -37,6 +37,20 @@ iterators invalidated are those referring to the deleted node.
 # include "tree_algorithm.hpp"
 namespace ft
 {
+// // set
+// template <class Tp>
+// class tree_key_value_types
+// {
+// 	typedef Tp					key_type;
+// };
+
+// // map
+// template <class pair>
+// class tree_key_value_types
+// {
+// 	typedef typename pair::first_type	key_type;
+// 	typedef typename pair::second_type	mapped_type;
+// };
 
 // _tree_iterator
 
@@ -178,13 +192,13 @@ template <class Tp, class Compare, class Alloc>
 class rb_tree
 {
 public:
-	typedef Alloc										allocator_type;
+	typedef Alloc												allocator_type;
 
-	typedef typename allocator_type::value_type			value_type;
-	typedef typename allocator_type::reference			reference;
-	typedef typename allocator_type::const_reference	const_reference;
-	typedef typename allocator_type::pointer			pointer;
-	typedef typename allocator_type::const_pointer		const_pointer;
+	typedef typename allocator_type::value_type					value_type;
+	typedef typename allocator_type::reference					reference;
+	typedef typename allocator_type::const_reference			const_reference;
+	typedef typename allocator_type::pointer					pointer;
+	typedef typename allocator_type::const_pointer				const_pointer;
 
 	// node type
 	typedef rb_tree_node<value_type>							node_type;
@@ -195,8 +209,11 @@ public:
 	typedef typename node_alloc_type::difference_type			difference_type;
 
 	// custom type
+	// typedef typename tree_key_value_types::key_type				key_type;
+	// typedef typename tree_key_value_types::mapped_type			mapped_type;
 	typedef typename value_type::first_type						key_type;
 	typedef typename value_type::second_type					mapped_type;
+
 
 protected:
 	link_type _begin;	// 최솟값을 가리킴
@@ -225,29 +242,24 @@ protected:
 							// tree is inserted again
 
 	Compare key_compare; // 필요없어 보이는데.,.?
-	static link_type NIL; // 필요없도록 바꾸고 싶다.
 	static link_type& left(link_type x) { return x->_left; }
 	static link_type& right(link_type x) { return x->_right; }
 	static link_type& parent(link_type x) { return x->_parent; }
 	static reference value(link_type x) { return x->_value; }
 
-	// ?
-	// static Allocator<Key>::const_reference key(link_type x) {
-	// 	return KeyOfValue()(value(x));
-	// }
 	static key_type key(link_type x) { return x->_value.first; }
 
 	static bool color(link_type x) { return x->_is_black; }
-	static link_type minimum(link_type x) {
-		while (left(x) != NIL)
-			x = left(x);
-		return x;
-	}
-	static link_type maximum(link_type x) {
-		while (right(x) != NIL)
-			x = right(x);
-		return x;
-	}
+	// static link_type minimum(link_type x) {
+	// 	while (left(x) != NIL)
+	// 		x = left(x);
+	// 	return x;
+	// }
+	// static link_type maximum(link_type x) {
+	// 	while (right(x) != NIL)
+	// 		x = right(x);
+	// 	return x;
+	// }
 
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
