@@ -2,6 +2,7 @@
 #define FT_VECTOR_ITERATOR
 
 # include <iterator>
+# include "iterator_traits.hpp"
 
 namespace ft
 {
@@ -12,13 +13,15 @@ namespace ft
 // 왜 상속받는 건지, 무슨 효과가 있는건지 잘 모르겠다.
 //
 template <class T>
+//struct vector_iterator : public std::iterator<std::random_access_iterator_tag, T>
 struct vector_iterator : public ft::iterator<std::random_access_iterator_tag, T>
 {
-typedef typename vector_iterator::value_type				value_type;
-typedef typename vector_iterator::difference_type			difference_type;
-typedef typename vector_iterator::pointer					pointer;
-typedef typename vector_iterator::reference					reference;
-typedef typename vector_iterator::iterator_category			iterator_category;
+typedef typename vector_iterator::value_type			value_type;
+typedef typename vector_iterator::difference_type		difference_type;
+typedef typename vector_iterator::pointer				pointer;
+typedef typename vector_iterator::reference				reference;
+typedef typename vector_iterator::iterator_category		iterator_category;
+typedef pointer											iterator_type;
 
 pointer p;
 

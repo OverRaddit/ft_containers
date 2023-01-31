@@ -15,6 +15,7 @@ public:
 	typedef typename Iter::difference_type		difference_type;	// 반복자끼리의 거리를 표현하는 타입
 	typedef typename Iter::pointer				pointer;
 	typedef typename Iter::reference			reference;
+	//typedef pointer								iterator_type;
 };
 
 template <class T>
@@ -26,6 +27,7 @@ public:
 	typedef ptrdiff_t						difference_type;
 	typedef T*								pointer;
 	typedef T&								reference;
+	//typedef pointer							iterator_type;
 };
 
 // const_iter
@@ -33,12 +35,12 @@ template <class T>
 struct iterator_traits <const T*>
 {
 public:
-	//typedef random_access_iterator_tag	iterator_category;
 	typedef std::random_access_iterator_tag			iterator_category;
 	typedef const T							value_type;
 	typedef ptrdiff_t						difference_type;
 	typedef const T*						pointer;
 	typedef const T&						reference;
+	//typedef pointer							iterator_type;
 };
 
 template<class _Category, class _Tp, class _Distance = ptrdiff_t,
