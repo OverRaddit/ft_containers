@@ -17,20 +17,21 @@ class set
 {
 public:
 // typedefs:
-	typedef T								value_type;
-	typedef Compare							key_compare;
-	typedef Alloc							allocator_type;
+	// pair가 아닌 T만 보내는 방법?
+	typedef ft::pair<const T, void>						value_type;
+	typedef Compare										key_compare;
+	typedef Alloc										allocator_type;
 
-	typedef typename allocator_type::reference				reference;
-	typedef typename allocator_type::const_reference		const_reference;
-	typedef typename allocator_type::pointer				pointer;
-	typedef typename allocator_type::const_pointer			const_pointer;
+	typedef typename allocator_type::reference			reference;
+	typedef typename allocator_type::const_reference	const_reference;
+	typedef typename allocator_type::pointer			pointer;
+	typedef typename allocator_type::const_pointer		const_pointer;
 
 	class value_compare
 		: public std::binary_function<value_type, value_type, bool>
 	{
 	friend class set; // set이 value_compare의 필드에 접근할 수 있게된다? 왜필요한지 잘 모르겠다.
-	protected :
+	protected:
 		key_compare comp;
 		value_compare(key_compare c) : comp(c) {}
 	public:
