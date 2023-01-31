@@ -89,22 +89,10 @@ public:
 	bool empty() const { return t.empty(); }
 	size_type size() const { return t.size(); }
 	size_type max_size() const { return t.max_size(); }
-	// insert는 이미 존재하는 원소를 반환하거나 없으면 추가하는 동작이다.
-	// 아니,,,, 함수원형이 잘못되어있었다.
-	// 그러면 잘못된 리턴형으로 지금까지 어떻게 동작한거지?
 	mapped_type& operator[] (const key_type& k)
-	//reference operator[](const key_type& k)
 	{
-		pair_iterator_bool ret = insert(value_type(k, T()));
-		// 삽입성공
-		if (ret.second)
-			return (*ret.first).second;
-		// 삽입실패
-		else
-			return (*ret.first).second;
-		//return (*((insert(value_type(k, T()))).first)).second;
+		return (*((insert(value_type(k, T()))).first)).second;
 	};
-
 
 // Modifiers:
 	// single
@@ -123,9 +111,9 @@ public:
 	void erase(iterator first, iterator last) { t.erase(first, last); }
 	void swap(map& x) { t.swap(x.t); }
 	// 구현되어 있지 않은 함수!
-	void clear() {t.clear();};
+	void clear() { t.clear(); }
 
-// Observers: <- 왜 옵저버라고 부르는지 모르겠다.
+// Observers:
 
 	key_compare key_comp() const { return t.key_comp(); }
 	value_compare value_comp() const { return value_compare(t.key_comp()); }
@@ -151,8 +139,6 @@ public:
 // allocator:
 	allocator_type get_allocator() const { return allocator_type(); };
 };
-
-// cplusplus에 이 함수들은 구현내역에 존재하지 않음.
 
 template <class Key, class T, class Compare, class Alloc>
 bool operator== ( const map<Key,T,Compare,Alloc>& lhs, const map<Key,T,Compare,Alloc>& rhs )
