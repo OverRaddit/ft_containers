@@ -1,20 +1,12 @@
 #ifndef FT_VECTOR
 #define FT_VECTOR
 
-// 눈팅용
-#include <vector>
-#include <iostream>
-#include <algorithm>
-#include <iterator>
-
-#include "iterator_traits.hpp"
-#include "reverse_iterator.hpp"
-#include "enable_if.hpp"
-#include "is_integral.hpp"
-#include <stdexcept> // out of range
-#include "equal.hpp"
-#include "lexicographical_compare.hpp"
-#include "vector_iterator.hpp"
+# include <iostream>
+# include <algorithm>
+# include <stdexcept> // out of range
+# include <iterator>
+# include "utility.hpp"
+# include "vector_iterator.hpp"
 
 namespace ft
 {
@@ -22,7 +14,6 @@ namespace ft
 template <class T, class Alloc = std::allocator<T> >
 class vector
 {
-
 	// Member Type
 public:
 	typedef Alloc allocator_type;
@@ -110,13 +101,10 @@ public:
 	// Iterators ================================================================================
 	iterator begin() { return iterator(_begin); };
 	const_iterator begin() const { return const_iterator(_begin); };
-
 	iterator end() { return iterator(_end); };
 	const_iterator end() const { return const_iterator(_end); };
-
 	reverse_iterator rbegin() { return reverse_iterator(end()); };
 	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); };
-
 	reverse_iterator rend() { return reverse_iterator(begin()); };
 	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); };
 	// ==========================================================================================
@@ -483,10 +471,10 @@ public:
 	void construct_range_with_range(pointer b, pointer e, pointer srcb,
 									pointer srce)
 	{
-		if (e - b != srce - srcb)
-		{
-			std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
-		}
+		// if (e - b != srce - srcb)
+		// {
+		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
+		// }
 		for (; b != e; b++)
 		{
 			_alloc.construct(b, *srcb++);
@@ -518,8 +506,6 @@ public:
 			}
 			throw;
 		}
-
-
 	};
 	// =========================================================================
 
