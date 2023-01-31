@@ -301,12 +301,37 @@ std::vector<int> erase_test_1(_map<T, V> mp) {
     return v;
 }
 
+template <class T, class V>
+std::vector<int> key_comp_test(std::map<T, V> mp) {
+
+    std::vector<int> v;
+    std::map<int, int, std::greater<int> > mp2;
+    std::map<int, int, std::equal_to<int> > mp3;
+    v.push_back(mp.key_comp()(1, 2));
+    v.push_back(mp2.key_comp()(1, 2));
+    v.push_back(mp3.key_comp()(1, 2));
+    return v;
+}
+
+template <class T, class V>
+std::vector<int> key_comp_test(_map<T, V> mp) {
+
+    std::vector<int> v;
+    _map<int, int, std::greater<int> > mp2;
+    _map<int, int, std::equal_to<int> > mp3;
+    v.push_back(mp.key_comp()(1, 2));
+    v.push_back(mp2.key_comp()(1, 2));
+    v.push_back(mp3.key_comp()(1, 2));
+    return v;
+}
+
 int main()
 {
 	//gshim_iter_test();
 
 	std::map<int,int> stdmap;
 	ft::map<int,int> mymap;
+	ft::map<int,int> mymap2;
 
 	std::vector<int> ret1 = copy_constructor_test(stdmap);
 	std::vector<int> ret2 = copy_constructor_test(mymap);
@@ -323,16 +348,8 @@ int main()
 	std::vector<int> ret9 = erase_test_1(stdmap);
 	std::vector<int> ret10 = erase_test_1(mymap);
 
-    // stdmap.insert(std::make_pair(1,1));
-    // stdmap.insert(std::make_pair(2,2));
-    // stdmap.insert(std::make_pair(3,3));
-
-    // stdmap[1] = 777;
-
-    // mymap.insert(_make_pair(1,1));
-    // mymap.insert(_make_pair(2,2));
-    // mymap.insert(_make_pair(3,3));
-    // mymap.equal_range(1);
+	std::vector<int> ret11 = key_comp_test(stdmap);
+	std::vector<int> ret12 = key_comp_test(mymap);
 
     return 0;
 }
