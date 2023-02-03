@@ -37,20 +37,24 @@ iterators invalidated are those referring to the deleted node.
 # include "tree_algorithm.hpp"
 namespace ft
 {
-// // set
-// template <class Tp>
-// class tree_key_value_types
-// {
-// 	typedef Tp					key_type;
-// };
+template <class Tp, class Enable = void> class rbtree_key_value_types;
+// set
+template <class Tp>
+class rbtree_key_value_types<Tp, typename ft::enable_if<!is_pair<Tp>::value>::type>
+{
+public:
+	typedef Tp		key_type;
+	typedef void	mapped_type;
+};
 
-// // map
-// template <class pair>
-// class tree_key_value_types
-// {
-// 	typedef typename pair::first_type	key_type;
-// 	typedef typename pair::second_type	mapped_type;
-// };
+// map
+template <class Tp>
+class rbtree_key_value_types<Tp, typename ft::enable_if<is_pair<Tp>::value>::type>
+{
+public:
+	typedef typename Tp::first_type		key_type;
+	typedef typename Tp::second_type	mapped_type;
+};
 
 // _tree_iterator
 
@@ -209,10 +213,10 @@ public:
 	typedef typename node_alloc_type::difference_type			difference_type;
 
 	// custom type
-	// typedef typename tree_key_value_types::key_type				key_type;
-	// typedef typename tree_key_value_types::mapped_type			mapped_type;
-	typedef typename value_type::first_type						key_type;
-	typedef typename value_type::second_type					mapped_type;
+	typedef typename rbtree_key_value_types<Tp>::key_type		key_type;
+	typedef typename rbtree_key_value_types<Tp>::mapped_type	mapped_type;
+	//typedef typename Tp::first_type								key_type;
+	//typedef typename Tp::second_type							mapped_type;
 
 
 protected:
@@ -247,19 +251,23 @@ protected:
 	static link_type& parent(link_type x) { return x->_parent; }
 	static reference value(link_type x) { return x->_value; }
 
-	static key_type key(link_type x) { return x->_value.first; }
+	static key_type key(link_type x)
+	{ return KeyOfValue(x->_value); }
+
+// map
+	template <typename T>
+	static typename std::enable_if<ft::is_pair<T>::value, key_type>::type
+	KeyOfValue(const T& x)
+	{ return x.first; }
+
+
+// set
+	template <typename T>
+	static typename std::enable_if<!ft::is_pair<T>::value, key_type>::type
+	KeyOfValue(const T& x)
+	{ return x; }
 
 	static bool color(link_type x) { return x->_is_black; }
-	// static link_type minimum(link_type x) {
-	// 	while (left(x) != NIL)
-	// 		x = left(x);
-	// 	return x;
-	// }
-	// static link_type maximum(link_type x) {
-	// 	while (right(x) != NIL)
-	// 		x = right(x);
-	// 	return x;
-	// }
 
 // ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
@@ -406,21 +414,22 @@ private:
 
 public:
 
-	rb_tree(Compare comp, bool always)
-		: node_count(0), insert_always(always), key_compare(comp)
+	rb_tree(Compare comp, bool always, const allocator_type& alloc = allocator_type())
+		: _alloc(alloc), node_count(0), insert_always(always), key_compare(comp)
 	{
 		__init();
 	};
 	template <class InputIterator>
-		rb_tree(InputIterator first, InputIterator last, Compare comp, bool always)
-		: node_count(0), insert_always(always), key_compare(comp)
+		rb_tree(InputIterator first, InputIterator last, Compare comp, bool always
+				, const allocator_type& alloc = allocator_type())
+		: _alloc(alloc), node_count(0), insert_always(always), key_compare(comp)
 	{
 		__init();
 		insert(first, last);
 	};
 
-	rb_tree(const rb_tree& x, bool always)
-		: node_count(x.node_count), insert_always(always), key_compare(x.key_compare)
+	rb_tree(const rb_tree& x, bool always, const allocator_type& alloc = allocator_type())
+		: _alloc(alloc), node_count(x.node_count), insert_always(always), key_compare(x.key_compare)
 	{
 		__init();
 		insert(x.begin(), x.end());
@@ -468,7 +477,7 @@ public:
 	{
 		link_type y = _end;
 		link_type x = _end->_left; // root
-		key_type k =  val.first;
+		key_type k = KeyOfValue(val);
 
 		while (x != nullptr)
 		{
@@ -519,27 +528,25 @@ public:
 		// 	return __insert(pos.node, pos.node, val);
 		// return insert(val).first;
 
-
-
 		if (pos == begin())
 		{
 			// 왼 자식으로 삽입.
-			if (!empty() && key_compare(val.first, key(pos.node)))
+			if (!empty() && key_compare(KeyOfValue(val), key(pos.node)))
 				return __insert(pos.node, pos.node, val);
 			return insert(val).first;
 		}
 		else if (pos == end())
 		{
 			// 오른 자식으로 삽입.
-			if (key_compare(key(rightmost()), val.first))
+			if (key_compare(key(rightmost()), KeyOfValue(val)))
 				return __insert(nullptr, rightmost(), val);
 			return insert(val).first;
 		}
 		else
 		{
 			iterator before = --pos;
-			if (key_compare(key(before.node), val.first) &&
-				key_compare(val.first, key(pos.node)))
+			if (key_compare(key(before.node), KeyOfValue(val)) &&
+				key_compare(KeyOfValue(val), key(pos.node)))
 			{
 				// =========================== 어렵당...
 				if (right(before.node) == nullptr)
@@ -625,6 +632,9 @@ public:
 		link_type x = root();
 		link_type tmp = x;
 
+		if (key_compare(key(ft::__tree_max(x)), k) || key_compare(k, key(_begin)))
+			return iterator(_end);
+
 		while (x != nullptr)
 		{
 			tmp = x;
@@ -683,7 +693,6 @@ public:
 
 		while (x != nullptr)
 		{
-			tmp = x;
 			if (key_compare(key(x), k))
 				x = x->_right;
 			else

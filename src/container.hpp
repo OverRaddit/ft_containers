@@ -1,12 +1,11 @@
 #ifndef FT_CONTAINERS
 #define FT_CONTAINERS
 
-#include <iostream>
-#include "vector.hpp"
-#include <vector>
-#include <string>
 
-# include "iterator_traits.hpp"
-# include "iterator.hpp"
+# include "utility.hpp"
+# include "vector.hpp"
+# include "stack.hpp"
+# include "map.hpp"
+# include "set.hpp"
 
 #endif

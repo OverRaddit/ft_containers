@@ -3,8 +3,6 @@
 
 # include "utility.hpp"
 # include "mytree2.hpp"
-# include <set>
-# include <stack>
 
 namespace ft
 {
@@ -18,7 +16,10 @@ class set
 public:
 // typedefs:
 	// pair가 아닌 T만 보내는 방법?
-	typedef ft::pair<const T, void>						value_type;
+	// 여기를 어떻게 해줘야 할지 모르겠다.
+	//typedef ft::pair<const T, int>						value_type;
+	//typedef const T										value_type;
+	typedef T											value_type;
 	typedef Compare										key_compare;
 	typedef Alloc										allocator_type;
 
@@ -36,7 +37,7 @@ public:
 		value_compare(key_compare c) : comp(c) {}
 	public:
 		bool operator()(const value_type& x, const value_type& y) const
-		{ return comp(x.first, y.first); }
+		{ return comp(x, y); }
 	};
 
 private:
@@ -57,15 +58,15 @@ public:
 
 	explicit set(const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-		: t(comp, false) {}
+		: t(comp, false, alloc) {}
 
 	template <class InputIterator>
 	set(InputIterator first, InputIterator last,
 			const key_compare& comp = key_compare(),
 			const allocator_type& alloc = allocator_type())
-		: t(first, last, comp, false) {}
+		: t(first, last, comp, false, alloc) {}
 
-	set(const set& x) : t(x.t, false) {}
+	set(const set& x) : t(x.t, false, allocator_type()) {}
 	~set() {}
 	set& operator= (const set& x) { t = x.t; return *this; }
 

@@ -56,7 +56,7 @@ public:
 	// tree
 	explicit map (const key_compare& comp = key_compare(),
 					const allocator_type& alloc = allocator_type())
-		: t(comp, false){}
+		: t(comp, false, alloc){}
 
 	// range
 	// insert를 트리생성자에서 하는 방식
@@ -65,11 +65,11 @@ public:
 	map (InputIterator first, InputIterator last,
 		const key_compare& comp = key_compare(),
 		const allocator_type& alloc = allocator_type())
-	: t(first, last, comp, false)
+	: t(first, last, comp, false, alloc)
 	{};
 
 	// copy
-	map(const map& x) : t(x.t, false) {}
+	map(const map& x) : t(x.t, false, allocator_type()) {}
 
 	map& operator=(const map& x) { t = x.t; return *this; }
 

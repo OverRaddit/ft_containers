@@ -16,7 +16,7 @@ LINE_CLEAR	=	"\x1b[1A\x1b[M"
 # Command Variables
 # =============================================================================
 CXX			=	c++
-CFLAGS		=	-std=c++98 #-Wall -Wextra -Werror #-g -Werror
+CFLAGS		=	-std=c++98 -Wall -Wextra -Werror #-g -Werror
 CDEBUG		=	-g -fsanitize=address
 CDBUG =
 

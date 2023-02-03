@@ -27,7 +27,8 @@ public:
 	typedef typename allocator_type::const_pointer const_pointer;
 	// iterator 4
 	typedef ft::vector_iterator<T> iterator;
-	typedef ft::vector_iterator<const T> const_iterator;
+	//typedef ft::vector_iterator<const T> const_iterator;
+	typedef ft::vector_const_iterator<T> const_iterator;
 	typedef ft::reverse_iterator<iterator> reverse_iterator;
 	typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
@@ -41,9 +42,9 @@ public:
 
 	// Member functions
 	// Constructor
-	vector(const allocator_type &alloc = allocator_type())
+	explicit vector(const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc){};
-	vector(size_type n, const value_type &val = value_type(),
+	explicit vector(size_type n, const value_type &val = value_type(),
 			const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
@@ -55,13 +56,12 @@ public:
 		construct_range_with_value(_begin, _end, val);
 	};
 	template <class InputIterator>
-	vector(InputIterator first, InputIterator last,
-			const allocator_type &alloc = allocator_type(),
-			typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
+	vector(typename ft::enable_if<!ft::is_integral<InputIterator>::value, InputIterator>::type first,
+			InputIterator last, const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
 		// allocate
-		reserve(last - first);
+		reserve(std::distance(first, last));
 
 		// init
 		for (; first != last; first++)
@@ -93,7 +93,8 @@ public:
 
 		// construct with copy
 		_end = _begin + x.size();
-		construct_range_with_range(_begin, _end, x._begin, x._end);
+		std::uninitialized_copy(x._begin, x._end, _begin);
+		//construct_range_with_range(_begin, _end, x._begin, x._end);
 
 		return *this;
 	};
@@ -169,18 +170,18 @@ public:
 		return const_cast<const_reference>(_begin[n]);
 	};
 	reference front() { return *_begin; };
-	const_reference front() const { return const_cast<const_reference>(*_begin); };
-	// access end -1. if not empty _ if empty, undefined
+	const_reference front() const { return *_begin; };
 	reference back() { return *(_end - 1); };
-	const_reference back() const { return const_cast<const_reference>(_end - 1); };
+	//const_reference back() const { return const_cast<const_reference>(_end - 1); };
+	const_reference back() const { return *(_end - 1); };
 	// ==========================================================================================
 
 	// Modifiers
 	template <class InputIterator>
-	void assign(InputIterator first, InputIterator last,
-				typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
+	void assign(typename ft::enable_if<!ft::is_integral<InputIterator>::value, InputIterator>::type first,
+					InputIterator last)
 	{
-		size_type n = last - first;
+		size_type n = std::distance(first, last);
 
 		// destroy current data
 		clear();
@@ -193,7 +194,8 @@ public:
 		}
 
 		// construct with value
-		construct_range_with_range(_begin, _begin + n, first.base(), last.base());
+		//construct_range_with_range(_begin, _begin + n, first.base(), last.base());
+		std::uninitialized_copy(first, last, _begin);
 		_end += n;
 	};
 	void assign(size_type n, const value_type &val)
@@ -205,7 +207,7 @@ public:
 		if (capacity() < n)
 		{
 			size_type new_size = (capacity() * 2 < n) ? n : capacity() * 2;
-			reserve(n);
+			reserve(new_size);
 		}
 
 		// construct with value
@@ -229,9 +231,11 @@ public:
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (position.base() - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, position.base());
+			//construct_range_with_range(new_begin, new_position, _begin, position.base());
+			std::uninitialized_copy(_begin, position.base(), new_begin);
 			_alloc.construct(new_position, val);
-			construct_range_with_range(new_position + 1, new_end, position.base(), _end);
+			//construct_range_with_range(new_position + 1, new_end, position.base(), _end);
+			std::uninitialized_copy(position.base(), _end, new_position + 1);
 
 			// dedalloc & destroy
 			if (capacity() != 0)
@@ -271,11 +275,13 @@ public:
 			pointer new_end_cap = new_begin + new_cap;
 			pointer new_position = new_begin + (pos - _begin);
 
-			construct_range_with_range(new_begin, new_position, _begin, pos);
+			//construct_range_with_range(new_begin, new_position, _begin, pos);
+			std::uninitialized_copy(_begin, pos, new_begin);
 			// insert
 			construct_range_with_value(new_position, new_position + n, val);
 			// 구간 모두 고칠것
-			construct_range_with_range(new_position + n, new_end, pos, _end);
+			//construct_range_with_range(new_position + n, new_end, pos, _end);
+			std::uninitialized_copy(pos, _end, new_position + n);
 
 			// dedalloc & destroy
 			if (capacity() != 0)
@@ -306,16 +312,17 @@ public:
 		}
 	};
 	template <class InputIterator>
-	void insert(iterator position, InputIterator first, InputIterator last,
-				typename ft::enable_if<!ft::is_integral<InputIterator>::value, bool>::type hint = 0)
+	void insert(iterator position,
+					typename ft::enable_if<
+						!ft::is_integral<InputIterator>::value, InputIterator
+					>::type first,
+					InputIterator last)
 	{
-		size_type n = last - first;
-		// iterator_traits<InputIterator>::difference_type Itern = last - first;
+		size_type n = std::distance(first, last);
 		pointer pos = position.base();
 
 		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
 		{
-			// 생각해볼것....!
 			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
 			// reallocate
 			pointer new_begin = _alloc.allocate(new_cap);
@@ -325,26 +332,9 @@ public:
 
 			try
 			{
-				//std::copy_backward();
-				//construct_range_with_range_templateVer(new_position, new_position + n, first, last);
 				std::uninitialized_copy(first, last, new_position);
-
-
 				std::uninitialized_copy(_begin, pos, new_begin);
-				//construct_range_with_range(new_begin, new_position, _begin, pos);
 				std::uninitialized_copy(pos, _end, new_position + n);
-				//construct_range_with_range(new_position + n, new_end, pos, _end);
-
-				// insert
-				// construct_range_with_range함수를 쓰면 서로 다른 데이터를 가리키는 pointer를 사용하기 때문에 컴파일 에러가 발생한다.
-				// first, last에 .base()를 호출하면 타입호환이 안됨.... 왜안될까
-				// construct_range_with_range(new_position, new_position + n, (pointer)first.base(), (pointer)last.base());
-
-
-				// vector x(first, last);
-				// std::cout << "X created!" << std::endl;
-				// construct_range_with_range(new_position, new_position + n, x.begin().base(), x.end().base());
-				// std::cout << "construct_range_with_range!" << std::endl;
 
 				// dedalloc & destroy
 				if (capacity() != 0)
@@ -360,9 +350,6 @@ public:
 			catch (...)
 			{
 				_alloc.deallocate(new_begin, new_end_cap - new_begin);
-				// destroy_range(new_position, new_position + n);
-				// construct_range_with_range(new_position, new_position + n, new_position + n, _end);
-				// erase(iterator(new_position), iterator(new_position + n));
 				throw;
 			}
 		}
@@ -383,14 +370,8 @@ public:
 	};
 	iterator erase(iterator position)
 	{
-		// position 원소 삭제
 		_alloc.destroy(position.base());
-		// shift left
-		// 삭제한 원소 다음 ~ 마지막원소 전부 1 칸씩 땡기기.
-		// 1 2 3 4 5
-		// 1 2 4 5
-		// 새 end로 최신화.
-		construct_range_with_range(position.base(), --_end, position.base() + 1, _end);
+		std::uninitialized_copy(position.base() + 1, --_end, position.base());
 
 		return position;
 	};
@@ -398,14 +379,8 @@ public:
 	{
 		size_type len = last - first;
 
-		// position 원소 삭제
 		destroy_range(first.base(), last.base());
-		// 삭제한 원소 다음 ~ 마지막원소 전부 len 칸씩 땡기기.
-		// 1 2 3 4 5
-		// 1 2 5
-		construct_range_with_range(first.base(), _end - len, first.base() + len, _end);
-
-		// 새 end로 최신화.
+		std::uninitialized_copy(first.base() + len, _end, first.base());
 		_end -= len;
 
 		return first;
@@ -453,7 +428,8 @@ public:
 		new_end_cap = iter + n;
 
 		// construct with copy
-		construct_range_with_range(new_begin, new_end, _begin, _end);
+		//construct_range_with_range(new_begin, new_end, _begin, _end);
+		std::uninitialized_copy(_begin, _end, new_begin);
 
 		// delete old data
 		if (capacity() != 0)
@@ -466,47 +442,29 @@ public:
 	};
 	// =========================================================================
 
-	// b~e 구간을 srcb~srce구간을 복사하여 초기화 한다.
-	// srce가 필요없다.
-	void construct_range_with_range(pointer b, pointer e, pointer srcb,
-									pointer srce)
-	{
-		// if (e - b != srce - srcb)
-		// {
-		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
-		// }
-		for (; b != e; b++)
-		{
-			_alloc.construct(b, *srcb++);
-		}
-	};
-	template <class InputIterator>
-	void construct_range_with_range_templateVer(pointer b, pointer e, InputIterator srcb, InputIterator srce)
-	{
-		// if (e - b != srce - srcb)
-		// {
-		// 	std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
-		// }
-		try
-		{
-			size_type a = e - b;
-			for (; b != e || srcb != srce; b++)
-			{
-				new(b) value_type(*srcb++);
-				//_alloc.construct(b, *srcb++);
-			}
-		}
-		catch(...)
-		{
-			// destroy
-			for (; b != e || srcb != srce; b++)
-			{
-				new(b) value_type(*srcb++);
-				//_alloc.construct(b, *srcb++);
-			}
-			throw;
-		}
-	};
+	// template <class InputIterator>
+	// void construct_range_with_range_templateVer(pointer b, pointer e, InputIterator srcb, InputIterator srce)
+	// {
+	// 	try
+	// 	{
+	// 		size_type a = e - b;
+	// 		for (; b != e || srcb != srce; b++)
+	// 		{
+	// 			new(b) value_type(*srcb++);
+	// 			//_alloc.construct(b, *srcb++);
+	// 		}
+	// 	}
+	// 	catch(...)
+	// 	{
+	// 		// destroy
+	// 		for (; b != e || srcb != srce; b++)
+	// 		{
+	// 			new(b) value_type(*srcb++);
+	// 			//_alloc.construct(b, *srcb++);
+	// 		}
+	// 		throw;
+	// 	}
+	// };
 	// =========================================================================
 
 	// b~e구간을 val값으로 초기화한다.
@@ -554,6 +512,7 @@ public:
 	void shift_right(pointer srcb, pointer srce, pointer destb, pointer deste,
 						pointer cap)
 	{
+		(void)destb;
 		// 역방향으로 값을 넣어야 한다.
 		// [ ) 기준을 역으로 접근하기 때문에 기존 방식과 아주약간 다른 것에 유의하자.
 		for (; srce != cap; --srce)

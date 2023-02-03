@@ -1,7 +1,9 @@
 #include "vector.hpp"
 #include "mytree2.hpp"
 #include "map.hpp"
+#include "set.hpp"
 #include <map>
+#include <set>
 #include "utility.hpp"
 #include <exception>
 #include <iostream>
@@ -12,6 +14,7 @@
 
 #define _vector ft::vector
 #define _map ft::map
+#define _set ft::set
 #define _make_pair ft::make_pair
 #define _pair ft::pair
 #define _is_integral ft::is_integral
@@ -39,9 +42,57 @@ bool is_integral_test_() {
 	return res;
 }
 
+template <class T>
+std::vector<int> find_test(std::set<T> st) {
+    std::vector<int> v;
+    for (int i = -75 * _ratio; i < 75 * _ratio; ++i) {
+        st.insert(i);
+    }
+    typename std::set<T>::iterator it = st.find(34 * _ratio);
+    v.push_back(*it);
+
+    it = st.find(-34 * _ratio);
+    v.push_back(*it);
+
+    it = st.find(-987654321);
+    if (it == st.end())
+        v.push_back(1);
+    return v;
+}
+
+template <class T>
+std::vector<int> find_test(_set<T> st) {
+    std::vector<int> v;
+    for (int i = -75 * _ratio; i < 75 * _ratio; ++i) {
+        st.insert(i);
+    }
+    typename _set<T>::iterator it = st.find(34 * _ratio);
+    v.push_back(*it);
+
+    it = st.find(-34 * _ratio);
+    v.push_back(*it);
+
+    it = st.find(-987654321);
+    if (it == st.end())
+        v.push_back(1);
+    return v;
+}
+
 int main()
 {
+	set<int> s1;
+	_set<int> s2;
 
-	std::cout << is_integral_test_() << "<" << std::endl;
+	std::vector<int> v1 = find_test(s1);
+	std::vector<int> v2 = find_test(s2);
+
+	for(int i=0;i<v1.size();i++)
+ 		std::cout << v1[i] << std::endl;
+
+	std::cout << std::endl << std::endl;
+
+	for(int i=0;i<v2.size();i++)
+		std::cout << v2[i] << std::endl;
+
     return 0;
 }

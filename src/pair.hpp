@@ -27,10 +27,11 @@ public:
 		: first(pr.first), second(pr.second) {}
 
 	// operator=
-	pair &operator=(const pair &pr)
+	pair& operator=(const pair &pr)
 	{
 		first = pr.first;
 		second = pr.second;
+		return *this;
 	}
 };
 

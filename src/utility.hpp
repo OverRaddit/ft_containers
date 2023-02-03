@@ -6,3 +6,4 @@
 #include "lexicographical_compare.hpp"
 #include "reverse_iterator.hpp"
 #include "iterator_traits.hpp"
+#include "is_pair.hpp"

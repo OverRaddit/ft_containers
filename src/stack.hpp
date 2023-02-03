@@ -21,7 +21,7 @@ public:
 
 	bool empty() const { return container.empty(); };
 	size_type size() const { return container.size(); };
-	value_type &top() { return *(container.end() - 1); };
+	value_type &top() { return *(--container.end()); };
 	const value_type &top() const { return *(container.end()); };
 
 	void push(const value_type &val) { container.push_back(val); };

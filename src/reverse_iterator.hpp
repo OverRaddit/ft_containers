@@ -108,7 +108,7 @@ template <class Iterator>  bool operator>= (const reverse_iterator<Iterator>& lh
 template<class Iter>
 reverse_iterator<Iter> operator+(typename reverse_iterator<Iter>::difference_type n,
 	const reverse_iterator<Iter>& rev_it)
-{ return rev_it.base() - n; };
+{ return reverse_iterator<Iter>(rev_it.base() - n); };
 // 두 iter의 거리 계산
 template<class Iter>
 typename reverse_iterator<Iter>::difference_type operator-(const reverse_iterator<Iter>&lhs,
