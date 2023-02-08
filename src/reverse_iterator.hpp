@@ -82,14 +82,15 @@ reference operator[](difference_type n) const { return *(*this + n); };
 // Non-member function overloads
 // ================================================================================
 // 관계연산
-template <class Iterator>  bool operator== (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
-{return lhs.base() == rhs.base();};
-template <class Iterator>  bool operator!= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
+template <class T, class U>  bool operator== (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
+{return *lhs.base() == *rhs.base();};
+
+template <class T, class U>  bool operator!= (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
 {
 	//return *lhs != *rhs; // mine
-	return lhs.base() != rhs.base(); // stl
+	return *lhs.base() != *rhs.base(); // stl
 };
 template <class Iterator>  bool operator< (const reverse_iterator<Iterator>& lhs,
 	const reverse_iterator<Iterator>& rhs)
@@ -109,11 +110,14 @@ template<class Iter>
 reverse_iterator<Iter> operator+(typename reverse_iterator<Iter>::difference_type n,
 	const reverse_iterator<Iter>& rev_it)
 { return reverse_iterator<Iter>(rev_it.base() - n); };
+
 // 두 iter의 거리 계산
-template<class Iter>
-typename reverse_iterator<Iter>::difference_type operator-(const reverse_iterator<Iter>&lhs,
-	const reverse_iterator<Iter>& rhs)
-{ return lhs.base() - rhs.base(); };
+template<class T, class U>
+typename reverse_iterator<T>::difference_type operator-(const reverse_iterator<T>&lhs,
+	const reverse_iterator<U>& rhs)
+{
+	return lhs.base() - rhs.base();
+};
 
 }
 #endif

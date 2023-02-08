@@ -21,78 +21,71 @@
 #define _ratio 10
 using namespace std;
 
-bool is_integral_test_() {
-	std::vector<int> v;
-	bool res = 1;
-	(_is_integral<float>() == std::is_integral<float>()) ? 0 : res = 0;
-	(_is_integral<int>() == std::is_integral<int>()) ? 0 : res = 0;
-	(_is_integral<bool>() == std::is_integral<bool>()) ? 0 : res = 0;
-	(_is_integral<char>() == std::is_integral<char>()) ? 0 : res = 0;
-	(_is_integral<signed char>() == std::is_integral<signed char>()) ? 0 : res = 0;
-	(_is_integral<unsigned char>() == std::is_integral<unsigned char>()) ? 0 : res = 0;
-	(_is_integral<wchar_t>() == std::is_integral<wchar_t>()) ? 0 : res = 0;
-	(_is_integral<char16_t>() == std::is_integral<char16_t>()) ? 0 : res = 0;
-	(_is_integral<short>() == std::is_integral<short>()) ? 0 : res = 0;
-	(_is_integral<unsigned short>() == std::is_integral<unsigned short>()) ? 0 : res = 0;
-	(_is_integral<unsigned int>() == std::is_integral<unsigned int>()) ? 0 : res = 0;
-	(_is_integral<long>() == std::is_integral<long>()) ? 0 : res = 0;
-	(_is_integral<unsigned long>() == std::is_integral<unsigned long>()) ? 0 : res = 0;
-	(_is_integral<long long>() == std::is_integral<long long>()) ? 0 : res = 0;
-	(_is_integral<unsigned long long>() == std::is_integral<unsigned long long>()) ? 0 : res = 0;
-	return res;
-}
-
-template <class T>
-std::vector<int> find_test(std::set<T> st) {
+template <typename T>
+std::vector<int> constructor_test(std::vector<T> vector) {
     std::vector<int> v;
-    for (int i = -75 * _ratio; i < 75 * _ratio; ++i) {
-        st.insert(i);
-    }
-    typename std::set<T>::iterator it = st.find(34 * _ratio);
-    v.push_back(*it);
-
-    it = st.find(-34 * _ratio);
-    v.push_back(*it);
-
-    it = st.find(-987654321);
-    if (it == st.end())
-        v.push_back(1);
+    std::vector<int> tmp0(vector);
+    std::vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
+    tmp = tmp2;
+    std::vector<int> tmp3(tmp);
+    std::vector<int> tmp4(tmp.begin(), tmp.end());
+    v.push_back(tmp4.size());
+    v.push_back(tmp4.capacity());
+    v.push_back(tmp[2]);
+    v.push_back(tmp3[2]);
+    v.push_back(tmp4[2]);
+    try { std::vector<int> tmp5(-1, -1); }
+    catch (std::exception &e) { v.push_back(1); }
     return v;
 }
 
-template <class T>
-std::vector<int> find_test(_set<T> st) {
+template <typename T>
+std::vector<int> constructor_test(_vector<T> vector) {
     std::vector<int> v;
-    for (int i = -75 * _ratio; i < 75 * _ratio; ++i) {
-        st.insert(i);
-    }
-    typename _set<T>::iterator it = st.find(34 * _ratio);
-    v.push_back(*it);
-
-    it = st.find(-34 * _ratio);
-    v.push_back(*it);
-
-    it = st.find(-987654321);
-    if (it == st.end())
-        v.push_back(1);
+	_vector<int> tmp0(vector);
+    _vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
+    tmp = tmp2;
+    _vector<int> tmp3(tmp);
+    _vector<int> tmp4(tmp.begin(), tmp.end());
+    v.push_back(tmp4.size());
+    v.push_back(tmp4.capacity());
+    v.push_back(tmp[2]);
+    v.push_back(tmp3[2]);
+    v.push_back(tmp4[2]);
+    try { _vector<int> tmp5(-1, -1); }
+    catch (std::exception &e) { v.push_back(1); }
     return v;
 }
 
 int main()
 {
-	set<int> s1;
-	_set<int> s2;
+	std::vector<int> v1;
+	ft::vector<int> v2;
 
-	std::vector<int> v1 = find_test(s1);
-	std::vector<int> v2 = find_test(s2);
+	ft::vector<std::string> vct(10);
 
-	for(int i=0;i<v1.size();i++)
- 		std::cout << v1[i] << std::endl;
+	for (unsigned long int i = 0; i < vct.size(); ++i)
+		vct[i] = std::string((vct.size() - i), i + 65);
 
-	std::cout << std::endl << std::endl;
+	vct.erase(vct.begin() + 2);
 
-	for(int i=0;i<v2.size();i++)
-		std::cout << v2[i] << std::endl;
+	vct.erase(vct.begin());
+	vct.erase(vct.end() - 1);
 
-    return 0;
+	vct.erase(vct.begin(), vct.begin() + 3);
+	vct.erase(vct.end() - 3, vct.end() - 1);
+
+	vct.push_back("Hello");
+	vct.push_back("Hi there");
+	vct.erase(vct.end() - 3, vct.end());
+
+	vct.push_back("ONE");
+	vct.push_back("TWO");
+	vct.push_back("THREE");
+	vct.push_back("FOUR");
+	vct.erase(vct.begin(), vct.end());
+
+	std::cout << "end" << std::endl;
+
+	return 0;
 }
