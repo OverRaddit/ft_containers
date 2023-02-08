@@ -371,7 +371,7 @@ public:
 	iterator erase(iterator position)
 	{
 		_alloc.destroy(position.base());
-		std::uninitialized_copy(position.base() + 1, --_end, position.base());
+		std::uninitialized_copy(position.base() + 1, _end--, position.base());
 
 		return position;
 	};
