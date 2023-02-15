@@ -42,6 +42,11 @@ iterators invalidated are those referring to the deleted node.
 #include <bool.h>
 #include <projectn.h>
 
+// memo
+#include <__tree>
+#include <map>
+#include <iterator>
+
 #ifndef rb_tree
 #define rb_tree rb_tree
 #endif

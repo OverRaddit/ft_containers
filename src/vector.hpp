@@ -8,6 +8,9 @@
 # include "utility.hpp"
 # include "vector_iterator.hpp"
 
+// 지울것.
+# include <vector>
+
 namespace ft
 {
 
@@ -21,16 +24,15 @@ public:
 	typedef typename allocator_type::size_type size_type; // non-negative value of difference_type
 
 	typedef T value_type;
-	typedef typename allocator_type::reference reference;
-	typedef typename allocator_type::const_reference const_reference;
-	typedef typename allocator_type::pointer pointer;
-	typedef typename allocator_type::const_pointer const_pointer;
-	// iterator 4
-	typedef ft::vector_iterator<T> iterator;
-	//typedef ft::vector_iterator<const T> const_iterator;
-	typedef ft::vector_const_iterator<T> const_iterator;
-	typedef ft::reverse_iterator<iterator> reverse_iterator;
-	typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+	typedef typename allocator_type::reference			reference;
+	typedef typename allocator_type::const_reference	const_reference;
+	typedef typename allocator_type::pointer			pointer;
+	typedef typename allocator_type::const_pointer		const_pointer;
+	// iterator
+	typedef ft::v__iterator<pointer>					iterator;
+	typedef ft::v__iterator<const_pointer>				const_iterator;
+	typedef ft::reverse_iterator<iterator>				reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>		const_reverse_iterator;
 
 	typedef typename ft::iterator_traits<iterator>::difference_type difference_type;
 
@@ -60,12 +62,26 @@ public:
 			InputIterator last, const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
+		size_type n = std::distance(first, last);
 		// allocate
-		reserve(std::distance(first, last));
+		reserve(n);
 
 		// init
-		for (; first != last; first++)
-			_alloc.construct(_end++, *first);
+		// for (; first != last; first++)
+		// 	_alloc.construct(_end++, *first);
+		// 다른타입을 가리키는 이터레이터인 경우 릭이 나는 경우가 있어 대체한다.
+		try
+		{
+			/* code */
+			std::uninitialized_copy(first, last, _end);
+			_end += n;
+		}
+		catch(const std::exception& e)
+		{
+			std::cout << ">ERROR WHILE VECTOR(RANGE)" << std::endl;
+			std::cerr << e.what() << '\n';
+		}
+
 	};
 	vector(const vector &x)
 		: _begin(0), _end(0), _end_cap(0), _alloc(allocator_type())
@@ -219,154 +235,125 @@ public:
 	// empty에서 호출하는건 정의되지않은 행동이다.
 	void pop_back() { _alloc.destroy(--_end); };
 
+protected:
+	//  Precondition:  __new_size > capacity()
+	size_type __recommend(size_type __new_size) const
+	{
+		const size_type __ms = max_size();
+		// max_size()이상의 재할당은 불가능
+		if (__new_size > __ms)
+			throw std::length_error("vector");
+		const size_type __cap = capacity();
+		// 현 용량의 2배가 max_size()를 넘어가면 max_size()로 할당한다.
+		if (__cap >= __ms / 2)
+			return __ms;
+		// 현재용량의 2배와 __new_size중 더 큰 값으로 재할당한다.
+		return std::max(2*__cap, __new_size);
+	}
+
+public:
 	iterator insert(iterator position, const value_type &val)
 	{
-		// if vector is full, append twice or greater
+		difference_type len = position.base() - _begin;
+		// ㅌㅔ스트기마다 기준다름.
 		if (_end == _end_cap)
+			reserve(__recommend(capacity() + 1));
+		//reserve(capacity() * 2 + (capacity() == 0));
+
+		// pos ~ end 를 우측으로 n 이동하여 construct.
+		pointer end = _end;
+		pointer pos = _begin + len;
+		while(end != pos)
 		{
-			// reallocate
-			size_type new_cap = (size() == 0) ? 1 : capacity() * 2;
-			pointer new_begin = _alloc.allocate(new_cap);
-			pointer new_end = new_begin + size() + 1;
-			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (position.base() - _begin);
-
-			//construct_range_with_range(new_begin, new_position, _begin, position.base());
-			std::uninitialized_copy(_begin, position.base(), new_begin);
-			_alloc.construct(new_position, val);
-			//construct_range_with_range(new_position + 1, new_end, position.base(), _end);
-			std::uninitialized_copy(position.base(), _end, new_position + 1);
-
-			// dedalloc & destroy
-			if (capacity() != 0)
-			{
-				free_vector();
-			}
-
-			// update member
-			_begin = new_begin;
-			_end = new_end;
-			_end_cap = new_end_cap;
-
-			return new_position;
+			--end;
+			_alloc.construct(end + 1, *end);
+			_alloc.destroy(end);
 		}
-		else // 공간이 충분하다. shift + insert
-		{
-			shift_right(position.base(), _end, position.base() + 1, _end + 1, _end);
-			*position = val;
+		_alloc.construct(pos, val);
+		_end++;
 
-			// update member
-			_end = _end + 1;
+		return iterator(pos);
+	}
 
-			return position;
-		}
-	};
 	void insert(iterator position, size_type n, const value_type &val)
 	{
-		pointer pos = position.base();
-
-		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
+		difference_type len = position - begin();
+		if (size() + n > capacity())
 		{
-			// 생각해볼것....!
-			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
-			// reallocate
-			pointer new_begin = _alloc.allocate(new_cap);
-			pointer new_end = new_begin + size() + n;
-			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (pos - _begin);
-
-			//construct_range_with_range(new_begin, new_position, _begin, pos);
-			std::uninitialized_copy(_begin, pos, new_begin);
-			// insert
-			construct_range_with_value(new_position, new_position + n, val);
-			// 구간 모두 고칠것
-			//construct_range_with_range(new_position + n, new_end, pos, _end);
-			std::uninitialized_copy(pos, _end, new_position + n);
-
-			// dedalloc & destroy
-			if (capacity() != 0)
-			{
-				free_vector();
-			}
-
-			// update member
-			_begin = new_begin;
-			_end = new_end;
-			_end_cap = new_end_cap;
+			// size_t newCapacity = capacity();
+			// while(newCapacity < n + size())
+			// 	newCapacity *= 2;
+			// reserve(newCapacity);
+			reserve(__recommend(size() + n));
 		}
-		else // 공간이 충분하다.
+
+		// pos ~ end 를 우측으로 n 이동하여 construct.
+		pointer pos = _begin + len;
+		pointer end = _end;
+		while(end != pos)
 		{
-			// shift
-			shift_right(pos, _end, pos + n, _end + n, _end);
-
-			// insert
-			//  destroy_range(pos, _end); // _end전까진 원소 destroy
-			//  construct_range_with_value(pos, _end + n); // construct
-			for (; pos != _end; pos++) // _end전까진 값 대입
-				*pos = val;
-			for (; pos != _end + n; pos++) // _end+n까진 construct
-				_alloc.construct(pos, val);
-
-			// update member
-			_end = _end + n;
+			--end;
+			_alloc.construct(end + n, *end);
+			_alloc.destroy(end);
 		}
+		std::uninitialized_fill(pos, pos + n, val);
+		_end = _end + n;
 	};
+
+	// 대입할 수 없는 이터레이터 범위를 억지로 대입하는 케이스에서,, 대입을 못해도 미리 할당은 해놓는 문제 발생.
+	// Input_iter, Bidir_iter로 각각 구현하면 어떨까?
 	template <class InputIterator>
 	void insert(iterator position,
 					typename ft::enable_if<
 						!ft::is_integral<InputIterator>::value, InputIterator
-					>::type first,
-					InputIterator last)
+					>::type first, InputIterator last)
 	{
+		// difference_type len = position - begin();
+		// size_type n = std::distance(first, last);
+
+		// if (size() + n > capacity())
+		// 	reserve(__recommend(size() + n));
+		// // pos ~ end 를 우측으로 n 이동하여 construct.
+		// pointer pos = _begin + len;
+		// pointer end = _end;
+		// while(end != pos)
+		// {
+		// 	--end;
+		// 	_alloc.construct(end + n, *end);
+		// 	_alloc.destroy(end);
+		// }
+		// std::uninitialized_copy(first, last, pos);
+		// _end = _end + n;
+
+
+		difference_type len = position - begin();
 		size_type n = std::distance(first, last);
-		pointer pos = position.base();
 
-		if (_end + n > _end_cap) // 공간이 부족 -> 재할당
+		try
 		{
-			size_type new_cap = (capacity() * 2 > n) ? 2 * capacity() + (size() == 0) : size() + (size() == 0) + n;
-			// reallocate
-			pointer new_begin = _alloc.allocate(new_cap);
-			pointer new_end = new_begin + size() + n;
-			pointer new_end_cap = new_begin + new_cap;
-			pointer new_position = new_begin + (pos - _begin);
+			vector copy(first, last);
 
-			try
+			if (size() + n > capacity())
+				reserve(__recommend(size() + n));
+			// pos ~ end 를 우측으로 n 이동하여 construct.
+			pointer pos = _begin + len;
+			pointer end = _end;
+			while(end != pos)
 			{
-				std::uninitialized_copy(first, last, new_position);
-				std::uninitialized_copy(_begin, pos, new_begin);
-				std::uninitialized_copy(pos, _end, new_position + n);
-
-				// dedalloc & destroy
-				if (capacity() != 0)
-				{
-					free_vector();
-				}
-
-				// update member
-				_begin = new_begin;
-				_end = new_end;
-				_end_cap = new_end_cap;
+				--end;
+				_alloc.construct(end + n, *end);
+				_alloc.destroy(end);
 			}
-			catch (...)
-			{
-				_alloc.deallocate(new_begin, new_end_cap - new_begin);
-				throw;
-			}
-		}
-		else // 공간이 충분하다.
-		{
-			// shift
-			shift_right(pos, _end, pos + n, _end + n, _end);
-
-			// insert
-			for (; pos != _end; pos++) // _end전까진 값 대입
-				*pos = *first++;
-			for (; pos != _end + n; pos++) // _end+n까진 construct
-				_alloc.construct(pos, *first++);
-
-			// update member
+			std::uninitialized_copy(copy.begin(), copy.end(), pos);
 			_end = _end + n;
 		}
+		catch(...)
+		{
+			std::cout << "ERROR WHILE VECTOR(RANGE)" << std::endl;
+			std::cerr << e.what() << '\n';
+		}
+
+
 	};
 	iterator erase(iterator position)
 	{
@@ -428,7 +415,6 @@ public:
 		new_end_cap = iter + n;
 
 		// construct with copy
-		//construct_range_with_range(new_begin, new_end, _begin, _end);
 		std::uninitialized_copy(_begin, _end, new_begin);
 
 		// delete old data
@@ -440,32 +426,6 @@ public:
 		_end = new_end;
 		_end_cap = new_end_cap;
 	};
-	// =========================================================================
-
-	// template <class InputIterator>
-	// void construct_range_with_range_templateVer(pointer b, pointer e, InputIterator srcb, InputIterator srce)
-	// {
-	// 	try
-	// 	{
-	// 		size_type a = e - b;
-	// 		for (; b != e || srcb != srce; b++)
-	// 		{
-	// 			new(b) value_type(*srcb++);
-	// 			//_alloc.construct(b, *srcb++);
-	// 		}
-	// 	}
-	// 	catch(...)
-	// 	{
-	// 		// destroy
-	// 		for (; b != e || srcb != srce; b++)
-	// 		{
-	// 			new(b) value_type(*srcb++);
-	// 			//_alloc.construct(b, *srcb++);
-	// 		}
-	// 		throw;
-	// 	}
-	// };
-	// =========================================================================
 
 	// b~e구간을 val값으로 초기화한다.
 	void construct_range_with_value(pointer b, pointer e, value_type val = value_type())
@@ -508,21 +468,6 @@ public:
 		_end = 0;
 		_end_cap = 0;
 	}
-	// srcb~srce => destb~deste, cap을 기준으로 대입/초기화가 갈린다.
-	void shift_right(pointer srcb, pointer srce, pointer destb, pointer deste,
-						pointer cap)
-	{
-		(void)destb;
-		// 역방향으로 값을 넣어야 한다.
-		// [ ) 기준을 역으로 접근하기 때문에 기존 방식과 아주약간 다른 것에 유의하자.
-		for (; srce != cap; --srce)
-			_alloc.construct(srce, *--deste);
-
-		for (; srce != srcb; --srce)
-			*srce = *--deste;
-		*srce = *--deste;
-	};
-	// ==========================================================================================
 };
 
 // Non-member function overloads

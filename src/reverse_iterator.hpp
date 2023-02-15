@@ -82,28 +82,29 @@ reference operator[](difference_type n) const { return *(*this + n); };
 // Non-member function overloads
 // ================================================================================
 // 관계연산
-template <class T, class U>  bool operator== (const reverse_iterator<T>& lhs,
+template <class T, class U> bool operator== (const reverse_iterator<T>& lhs,
 	const reverse_iterator<U>& rhs)
-{return *lhs.base() == *rhs.base();};
+{return lhs.base() == rhs.base();};
 
-template <class T, class U>  bool operator!= (const reverse_iterator<T>& lhs,
+template <class T, class U> bool operator!= (const reverse_iterator<T>& lhs,
 	const reverse_iterator<U>& rhs)
 {
-	//return *lhs != *rhs; // mine
-	return *lhs.base() != *rhs.base(); // stl
+	return lhs.base() != rhs.base();
 };
-template <class Iterator>  bool operator< (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
-{return lhs.base() < rhs.base();};
-template <class Iterator>  bool operator<= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
-{return lhs.base() <= rhs.base();};
-template <class Iterator>  bool operator> (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
+
+// 부등호방향도 reverse다.
+template <class T, class U> bool operator< (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
 {return lhs.base() > rhs.base();};
-template <class Iterator>  bool operator>= (const reverse_iterator<Iterator>& lhs,
-	const reverse_iterator<Iterator>& rhs)
+template <class T, class U> bool operator<= (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
 {return lhs.base() >= rhs.base();};
+template <class T, class U> bool operator> (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
+{return lhs.base() < rhs.base();};
+template <class T, class U> bool operator>= (const reverse_iterator<T>& lhs,
+	const reverse_iterator<U>& rhs)
+{return lhs.base() <= rhs.base();};
 
 // r_iter + 1은 멤버함수로 가능 but 1 + r_iter는 불가능
 template<class Iter>
@@ -112,11 +113,12 @@ reverse_iterator<Iter> operator+(typename reverse_iterator<Iter>::difference_typ
 { return reverse_iterator<Iter>(rev_it.base() - n); };
 
 // 두 iter의 거리 계산
+// reverse 이기 때문에 방향이 반대가 된다. 유의할것.
 template<class T, class U>
 typename reverse_iterator<T>::difference_type operator-(const reverse_iterator<T>&lhs,
 	const reverse_iterator<U>& rhs)
 {
-	return lhs.base() - rhs.base();
+	return rhs.base() - lhs.base();
 };
 
 }

@@ -4,9 +4,6 @@
 # include "iterator_category.hpp"
 namespace ft
 {
-
-
-
 template<class Iter>
 class iterator_traits {
 public:
@@ -27,7 +24,6 @@ public:
 	typedef ptrdiff_t						difference_type;
 	typedef T*								pointer;
 	typedef T&								reference;
-	//typedef pointer							iterator_type;
 };
 
 // const_iter
@@ -35,12 +31,11 @@ template <class T>
 struct iterator_traits <const T*>
 {
 public:
-	typedef std::random_access_iterator_tag			iterator_category;
-	typedef const T							value_type;
-	typedef ptrdiff_t						difference_type;
-	typedef const T*						pointer;
-	typedef const T&						reference;
-	//typedef pointer							iterator_type;
+	typedef std::random_access_iterator_tag		iterator_category;
+	typedef const T								value_type;
+	typedef ptrdiff_t							difference_type;
+	typedef const T*							pointer;
+	typedef const T&							reference;
 };
 
 template<class _Category, class _Tp, class _Distance = ptrdiff_t,

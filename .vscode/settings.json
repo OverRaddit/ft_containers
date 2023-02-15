@@ -75,6 +75,8 @@
 		"__undef_macros": "cpp",
 		"__cxx_version": "cpp",
 		"list": "cpp",
-		"queue": "cpp"
-	}
+		"queue": "cpp",
+		"*.ipp": "cpp"
+	},
+	"C_Cpp.errorSquiggles": "disabled"
 }

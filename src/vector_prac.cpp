@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include <typeinfo>
 
@@ -21,71 +22,134 @@
 #define _ratio 10
 using namespace std;
 
+//#include "./containers_test/srcs/vector/common.hpp"
+
+//#define TESTED_TYPE foo<int>
+
+// template <typename T>
+// void	printSize(std::vector<T> const &vct, bool print_content = true)
+// {
+// 	const size_t size = vct.size();
+// 	const size_t capacity = vct.capacity();
+// 	const std::string isCapacityOk = (capacity >= size) ? "OK" : "KO";
+// 	// Cannot limit capacity's max value because it's implementation dependent
+
+// 	std::cout << "size: " << size << std::endl;
+// 	std::cout << "capacity: " << isCapacityOk << std::endl;
+// 	std::cout << "max_size: " << vct.max_size() << std::endl;
+// 	if (print_content)
+// 	{
+// 		typename std::vector<T>::const_iterator it = vct.begin();
+// 		typename std::vector<T>::const_iterator ite = vct.end();
+// 		std::cout << std::endl << "Content is:" << std::endl;
+// 		for (; it != ite; ++it)
+// 			std::cout << "- " << *it << std::endl;
+// 	}
+// 	std::cout << "###############################################" << std::endl;
+// }
+
+class B {
+public:
+    char *l;
+    int i;
+    B():l(nullptr), i(1) {};
+    B(const int &ex) {
+        this->i = ex;
+        this->l = new char('a');
+    };
+    virtual ~B() {
+        delete this->l;
+        this->l = nullptr;
+    };
+};
+
+class A : public B {
+public:
+    A():B(){};
+    A(const B* ex){
+        this->l = new char(*(ex->l));
+        this->i = ex->i;
+        if (ex->i == -1) throw "n";
+    }
+    ~A() {
+        delete this->l;
+        this->l = nullptr;
+    };
+};
+
 template <typename T>
-std::vector<int> constructor_test(std::vector<T> vector) {
+std::vector<int> insert_test_3(std::vector<T> vector) {
     std::vector<int> v;
-    std::vector<int> tmp0(vector);
-    std::vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
-    tmp = tmp2;
-    std::vector<int> tmp3(tmp);
-    std::vector<int> tmp4(tmp.begin(), tmp.end());
-    v.push_back(tmp4.size());
-    v.push_back(tmp4.capacity());
-    v.push_back(tmp[2]);
-    v.push_back(tmp3[2]);
-    v.push_back(tmp4[2]);
-    try { std::vector<int> tmp5(-1, -1); }
-    catch (std::exception &e) { v.push_back(1); }
+    std::vector<int> tmp;
+    tmp.assign(2600 * _ratio, 1);
+    vector.assign(4200 * _ratio, 1);
+    vector.insert(vector.end() - 1000 * _ratio, tmp.begin(), tmp.end());
+    v.push_back(vector[3]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+
+    std::unique_ptr<B> k2(new B(3));
+    std::unique_ptr<B> k3(new B(4));
+    std::unique_ptr<B> k4(new B(-1));
+    std::vector<A> vv;
+    std::vector<B*> v1;
+
+    v1.push_back(&(*k2));
+    v1.push_back(&(*k3));
+    v1.push_back(&(*k4));
+    try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
+    catch (...) {
+        v.push_back(vv.size());
+        v.push_back(vv.capacity());
+    }
+
     return v;
 }
 
 template <typename T>
-std::vector<int> constructor_test(_vector<T> vector) {
+std::vector<int> insert_test_3(_vector<T> vector) {
     std::vector<int> v;
-	_vector<int> tmp0(vector);
-    _vector<int> tmp(1000 * _ratio, 4), tmp2(1000 * _ratio, 5);
-    tmp = tmp2;
-    _vector<int> tmp3(tmp);
-    _vector<int> tmp4(tmp.begin(), tmp.end());
-    v.push_back(tmp4.size());
-    v.push_back(tmp4.capacity());
-    v.push_back(tmp[2]);
-    v.push_back(tmp3[2]);
-    v.push_back(tmp4[2]);
-    try { _vector<int> tmp5(-1, -1); }
-    catch (std::exception &e) { v.push_back(1); }
+    _vector<int> tmp;
+    tmp.assign(2600 * _ratio, 1);
+    vector.assign(4200 * _ratio, 1);
+    vector.insert(vector.end() - 1000 * _ratio, tmp.begin(), tmp.end());
+    v.push_back(vector[3]);
+    v.push_back(vector.size());
+    v.push_back(vector.capacity());
+
+    std::unique_ptr<B> k2(new B(3));
+    std::unique_ptr<B> k3(new B(4));
+    std::unique_ptr<B> k4(new B(-1));
+    _vector<A> vv;
+    _vector<B*> v1;
+
+    v1.push_back(&(*k2));
+    v1.push_back(&(*k3));
+    v1.push_back(&(*k4));
+    try { vv.insert(vv.begin(), v1.begin(), v1.end()); }
+    catch (...) {
+        v.push_back(vv.size());
+        v.push_back(vv.capacity());
+    }
+
     return v;
 }
 
-int main()
+int		main(void)
 {
+	std::vector<int> v;
+
 	std::vector<int> v1;
 	ft::vector<int> v2;
 
-	ft::vector<std::string> vct(10);
+	v = insert_test_3(v1);
+	for(size_t i=0;i<v.size();i++)
+		std::cout << v[i] << std::endl;
+	std::cout << std::endl;
+	v = insert_test_3(v2);
 
-	for (unsigned long int i = 0; i < vct.size(); ++i)
-		vct[i] = std::string((vct.size() - i), i + 65);
+	for(size_t i=0;i<v.size();i++)
+		std::cout << v[i] << std::endl;
 
-	vct.erase(vct.begin() + 2);
-
-	vct.erase(vct.begin());
-	vct.erase(vct.end() - 1);
-
-	vct.erase(vct.begin(), vct.begin() + 3);
-	vct.erase(vct.end() - 3, vct.end() - 1);
-
-	vct.push_back("Hello");
-	vct.push_back("Hi there");
-	vct.erase(vct.end() - 3, vct.end());
-
-	vct.push_back("ONE");
-	vct.push_back("TWO");
-	vct.push_back("THREE");
-	vct.push_back("FOUR");
-	vct.erase(vct.begin(), vct.end());
-
-	std::cout << "end" << std::endl;
-
-	return 0;
+	return (0);
 }
