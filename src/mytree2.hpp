@@ -646,12 +646,15 @@ public:
 			else
 				return iterator(x);
 		}
-		return iterator(tmp);
+		return end();
 	};
 	const_iterator find(const key_type& k) const
 	{
 		link_type x = root();
 		link_type tmp = x;
+
+		if (key_compare(key(ft::__tree_max(x)), k) || key_compare(k, key(_begin)))
+			return end();
 
 		while (x != nullptr)
 		{
@@ -663,7 +666,7 @@ public:
 			else
 				return const_iterator(x);
 		}
-		return const_iterator(tmp);
+		return end();
 	};
 	// 특정키값이 있는지 찾을것.
 	size_type count(const key_type& k) const
