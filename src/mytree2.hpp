@@ -428,8 +428,9 @@ public:
 		insert(first, last);
 	};
 
+	// node_count를 0으로 해놓으면 insert(begin,end)를 수행하면서 알아서 세준다.
 	rb_tree(const rb_tree& x, bool always, const allocator_type& alloc = allocator_type())
-		: _alloc(alloc), node_count(x.node_count), insert_always(always), key_compare(x.key_compare)
+		: _alloc(alloc), node_count(0), insert_always(always), key_compare(x.key_compare)
 	{
 		__init();
 		insert(x.begin(), x.end());
