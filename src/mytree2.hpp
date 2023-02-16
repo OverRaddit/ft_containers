@@ -634,8 +634,7 @@ public:
 		link_type tmp = x;
 
 		if (key_compare(key(ft::__tree_max(x)), k) || key_compare(k, key(_begin)))
-			return iterator(_end);
-
+			return end();
 		while (x != nullptr)
 		{
 			tmp = x;
