@@ -65,7 +65,6 @@ public:
 		size_type n = std::distance(first, last);
 		// allocate
 		reserve(n);
-
 		// init
 		// for (; first != last; first++)
 		// 	_alloc.construct(_end++, *first);
@@ -78,8 +77,9 @@ public:
 		}
 		catch(const std::exception& e)
 		{
-			std::cout << ">ERROR WHILE VECTOR(RANGE)" << std::endl;
-			std::cerr << e.what() << '\n';
+			// std::cout << "3-2" << std::endl;
+			// std::cout << ">ERROR WHILE VECTOR(RANGE)" << std::endl;
+			// std::cerr << e.what() << '\n';
 		}
 
 	};
@@ -302,59 +302,59 @@ public:
 
 	// 대입할 수 없는 이터레이터 범위를 억지로 대입하는 케이스에서,, 대입을 못해도 미리 할당은 해놓는 문제 발생.
 	// Input_iter, Bidir_iter로 각각 구현하면 어떨까?
+
+	// input
+	// template <class InputIterator>
+	// void insert(iterator position,
+	// 				InputIterator first, InputIterator last)
+	// {
+	// 	difference_type offset = position - begin();
+	// 	pointer pos;
+	// 	for (int i = 0; first != last; ++first, ++i) {
+	// 		pos = _begin + offset;
+	// 		//std::cout << *first << std::endl;
+	// 		insert(pos + i, *first);
+	// 	}
+	// };
+
+	// bi
 	template <class InputIterator>
 	void insert(iterator position,
 					typename ft::enable_if<
 						!ft::is_integral<InputIterator>::value, InputIterator
 					>::type first, InputIterator last)
 	{
+		iterator it = position;
+		for(; first != last; ++first)
+			position = insert(position, *first) + 1;
+
 		// difference_type len = position - begin();
 		// size_type n = std::distance(first, last);
-
-		// if (size() + n > capacity())
-		// 	reserve(__recommend(size() + n));
-		// // pos ~ end 를 우측으로 n 이동하여 construct.
-		// pointer pos = _begin + len;
-		// pointer end = _end;
-		// while(end != pos)
+		// try
 		// {
-		// 	--end;
-		// 	_alloc.construct(end + n, *end);
-		// 	_alloc.destroy(end);
+		// 	vector copy(first, last);
+
+		// 	if (size() + n > capacity())
+		// 		reserve(__recommend(size() + n));
+		// 	// pos ~ end 를 우측으로 n 이동하여 construct.
+		// 	pointer pos = _begin + len;
+		// 	pointer end = _end;
+		// 	while(end != pos)
+		// 	{
+		// 		--end;
+		// 		_alloc.construct(end + n, *end);
+		// 		_alloc.destroy(end);
+		// 	}
+		// 	std::uninitialized_copy(copy.begin(), copy.end(), pos);
+		// 	_end = _end + n;
 		// }
-		// std::uninitialized_copy(first, last, pos);
-		// _end = _end + n;
-
-
-		difference_type len = position - begin();
-		size_type n = std::distance(first, last);
-
-		try
-		{
-			vector copy(first, last);
-
-			if (size() + n > capacity())
-				reserve(__recommend(size() + n));
-			// pos ~ end 를 우측으로 n 이동하여 construct.
-			pointer pos = _begin + len;
-			pointer end = _end;
-			while(end != pos)
-			{
-				--end;
-				_alloc.construct(end + n, *end);
-				_alloc.destroy(end);
-			}
-			std::uninitialized_copy(copy.begin(), copy.end(), pos);
-			_end = _end + n;
-		}
-		catch(...)
-		{
-			std::cout << "ERROR WHILE VECTOR(RANGE)" << std::endl;
-			std::cerr << e.what() << '\n';
-		}
-
-
+		// catch(...)
+		// {
+		// 	//std::cout << "ERROR WHILE VECTOR(RANGE)" << std::endl;
+		// 	throw;
+		// }
 	};
+
 	iterator erase(iterator position)
 	{
 		_alloc.destroy(position.base());

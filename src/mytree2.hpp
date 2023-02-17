@@ -124,8 +124,13 @@ class __const_iterator
 public:
 	typedef typename Node::data					value_type;
 	typedef ptrdiff_t							difference_type;
-	typedef value_type*							pointer;
-	typedef value_type&							reference;
+
+	//typedef value_type*							pointer;
+	typedef const value_type*					pointer;
+
+	//typedef value_type&							reference;
+	typedef const value_type&					reference;
+
 	typedef std::bidirectional_iterator_tag		iterator_category;
 
 	typedef typename Node::data					data;
@@ -145,8 +150,11 @@ public:
 	bool operator==(const __const_iterator& x) const { return node == x.node; }
 	bool operator!=(const __const_iterator& x) const { return node != x.node;}
 
+	// 기존의 pointer, reference로 하면 오류
+	// const_pointer, const_reference로 하면 reverse_iter에서 오류;;
 	reference operator*() const { return node->_value; }
 	pointer operator->() const { return &(node->_value); }
+
 	__const_iterator& operator++() { node = ft::__tree_next_iter<Node*>(node); return *this; }
 	__const_iterator operator++(int)
 	{
@@ -215,9 +223,6 @@ public:
 	// custom type
 	typedef typename rbtree_key_value_types<Tp>::key_type		key_type;
 	typedef typename rbtree_key_value_types<Tp>::mapped_type	mapped_type;
-	//typedef typename Tp::first_type								key_type;
-	//typedef typename Tp::second_type							mapped_type;
-
 
 protected:
 	link_type _begin;	// 최솟값을 가리킴
@@ -227,19 +232,10 @@ protected:
 	link_type& root() { return left(_end); }
 	link_type& root() const { return left(_end); }
 
-	// empty()일때 _begin은 _end를 가리킨다...
 	link_type& leftmost() { return _begin; }
 	link_type& leftmost() const { return _begin; }
-
-	// __tree_max
-	link_type& rightmost()
-	{
-		return _end->_right;
-	}
-	link_type& rightmost() const
-	{
-		return _end->_right;
-	}
+	link_type& rightmost() { return _end->_right; }
+	link_type& rightmost() const { return _end->_right; }
 
 	size_type node_count; // keeps track of size of tree
 	bool insert_always;  // controls whether an element already in the
@@ -251,15 +247,13 @@ protected:
 	static link_type& parent(link_type x) { return x->_parent; }
 	static reference value(link_type x) { return x->_value; }
 
-	static key_type key(link_type x)
-	{ return KeyOfValue(x->_value); }
+	static key_type key(link_type x) { return KeyOfValue(x->_value); }
 
 // map
 	template <typename T>
 	static typename std::enable_if<ft::is_pair<T>::value, key_type>::type
 	KeyOfValue(const T& x)
 	{ return x.first; }
-
 
 // set
 	template <typename T>
@@ -269,14 +263,8 @@ protected:
 
 	static bool color(link_type x) { return x->_is_black; }
 
-// ITERATOR : ++ --  * -> == != cons dest copy
 //========================================================================================
 public:
-	// template <class Node>
-	// class __const_iterator;
-	// template <class Node>
-	// class __iterator;
-
 	friend class __const_iterator<rb_tree_node<value_type> >;
 	friend class __iterator<rb_tree_node<value_type> >;
 
@@ -413,7 +401,6 @@ private:
 //========================================================================================
 
 public:
-
 	rb_tree(Compare comp, bool always, const allocator_type& alloc = allocator_type())
 		: _alloc(alloc), node_count(0), insert_always(always), key_compare(comp)
 	{
@@ -440,6 +427,7 @@ public:
 		clear();
 		insert(x.begin(), x.end());
 
+		node_count = x.node_count;			// 최근 추가했는데 문제시 삭제할것.
 		insert_always = x.insert_always;
 		key_compare = x.key_compare;
 
@@ -469,9 +457,7 @@ public:
 	size_type max_size() const { return _alloc.max_size(); };
 
 // Modifiers:
-	// pair <
 	typedef pair<iterator, bool> pair_iterator_bool;
-	// return pair_iterator_bool(__insert(x, y, val), true); 이 되나???
 
 	// single
 	pair_iterator_bool insert (const value_type& val)
@@ -517,7 +503,9 @@ public:
 		return pair_iterator_bool(j, false);
 	};
 	// with hint
-	iterator insert (iterator pos, const value_type& val)
+	// const_iter 호환.
+	// 왜 반환은 iter, 함수인자는 const?
+	iterator insert (const_iterator pos, const value_type& val)
 	{
 		// if (pos == end())
 		// {
@@ -545,7 +533,7 @@ public:
 		}
 		else
 		{
-			iterator before = --pos;
+			const_iterator before = --pos;
 			if (key_compare(key(before.node), KeyOfValue(val)) &&
 				key_compare(KeyOfValue(val), key(pos.node)))
 			{
@@ -571,7 +559,8 @@ public:
 		while (first != last) insert(*first++);
 	};
 
-	void erase(iterator position)
+	// const_iterator를 이용해 erase가 가능하도록 하자.
+	void erase(const_iterator position)
 	{
 		if (position == begin())
 			_begin = __tree_next_iter(_begin);
@@ -588,7 +577,8 @@ public:
 		erase(range.first, range.second);
 		return ret;
 	};
-	void erase(iterator first, iterator last)
+	// const_iterator를 이용해 erase가 가능하도록 하자.
+	void erase(const_iterator first, const_iterator last)
 	{
 		while (first != last) erase(first++);
 	};

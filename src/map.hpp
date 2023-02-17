@@ -98,7 +98,8 @@ public:
 	// single
 	pair_iterator_bool insert (const value_type& val) { return t.insert(val); };
 	// with hint
-	iterator insert (iterator position, const value_type& val) { return t.insert(position, val); };
+	// const 호환
+	iterator insert (const_iterator position, const value_type& val) { return t.insert(position, val); };
 	// range
 	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last)

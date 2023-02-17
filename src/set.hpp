@@ -45,11 +45,16 @@ private:
 	typedef ft::rb_tree<value_type, key_compare, Alloc> rep_type;
 	rep_type t;  // red-black tree representing set
 public:
-	// 멤버타입 rep_type을 선언해야 함.
+	// set은 iterator, const_iterator모두 const여야 하지 않나?
 	typedef typename rep_type::const_iterator				iterator;
 	typedef typename rep_type::const_iterator				const_iterator;
-	typedef typename rep_type::reverse_iterator				reverse_iterator;
-	typedef typename rep_type::const_reverse_iterator		const_reverse_iterator;
+
+	// 왜??
+	// typedef typename rep_type::reverse_iterator				reverse_iterator;
+	// typedef typename rep_type::const_reverse_iterator		const_reverse_iterator;
+	typedef ft::reverse_iterator<iterator>					reverse_iterator;
+	typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+
 	typedef typename rep_type::difference_type				difference_type;
 	typedef typename rep_type::size_type					size_type;
 private:
@@ -91,7 +96,8 @@ public:
 	// single
 	pair_iterator_bool insert (const value_type& val) { return t.insert(val); };
 	// hint
-	iterator insert (iterator position, const value_type& val) { return t.insert(position, val); };
+	// const_iter 호환.
+	iterator insert (const_iterator p, const value_type& val) { return t.insert(p, val); };
 	// range
 	template <class InputIterator>
 	void insert (InputIterator first, InputIterator last)
@@ -99,7 +105,9 @@ public:
 		t.insert(first, last);
 	};
 
-	void erase(iterator position) { t.erase(position); }
+	// const_iterator 호환시키자.
+	void erase(const_iterator p) { t.erase(p); }
+
 	size_type erase(const value_type& val) { return t.erase(val); }
 	void erase(iterator first, iterator last) { t.erase(first, last); }
 	void swap(set& x) { t.swap(x.t); }
