@@ -8,9 +8,6 @@
 # include "utility.hpp"
 # include "vector_iterator.hpp"
 
-// 지울것.
-# include <vector>
-
 namespace ft
 {
 
@@ -50,18 +47,17 @@ public:
 			const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
-		// allocate
 		reserve(n);
-
-		// construct with value
 		_end = _begin + n;
-		construct_range_with_value(_begin, _end, val);
+		std::uninitialized_fill(_begin, _end, val);
 	};
 	template <class InputIterator>
 	vector(typename ft::enable_if<!ft::is_integral<InputIterator>::value, InputIterator>::type first,
 			InputIterator last, const allocator_type &alloc = allocator_type())
 		: _begin(0), _end(0), _end_cap(0), _alloc(alloc)
 	{
+		//insert(_begin, first, last);
+
 		size_type n = std::distance(first, last);
 		// allocate
 		reserve(n);
@@ -75,11 +71,13 @@ public:
 			std::uninitialized_copy(first, last, _end);
 			_end += n;
 		}
-		catch(const std::exception& e)
+		catch(...)
 		{
-			// std::cout << "3-2" << std::endl;
-			// std::cout << ">ERROR WHILE VECTOR(RANGE)" << std::endl;
-			// std::cerr << e.what() << '\n';
+			while(_begin != _end)
+			{
+				_alloc.destroy(_begin++);
+			}
+			throw;
 		}
 
 	};
@@ -94,23 +92,36 @@ public:
 		free_vector();
 	}
 
+protected:
+	//  Precondition:  __new_size > capacity()
+	size_type __recommend(size_type __new_size) const
+	{
+		const size_type __ms = max_size();
+		// max_size()이상의 재할당은 불가능
+		if (__new_size > __ms)
+			throw std::length_error("vector");
+		const size_type __cap = capacity();
+		// 현 용량의 2배가 max_size()를 넘어가면 max_size()로 할당한다.
+		if (__cap >= __ms / 2)
+			return __ms;
+		// 현재용량의 2배와 __new_size중 더 큰 값으로 재할당한다.
+		return std::max(2*__cap, __new_size);
+	}
+
+public:
 	vector &operator=(const vector &x)
 	{
-		// 할당된 것이 있을때만 free한다.
 		if (_begin != _end_cap)
 			free_vector();
-
-		// x의 모든 원소를 저장할 용량이 있는가?
 		if (capacity() < x.size())
 		{
-			size_type new_size = (capacity() * 2 < x.size()) ? x.size() : capacity() * 2;
+			//size_type new_size = (capacity() * 2 < x.size()) ? x.size() : capacity() * 2;
+			size_type new_size = __recommend(x.size());
 			reserve(new_size);
 		}
-
-		// construct with copy
+		//reserve(__recommend(x.size()));
 		_end = _begin + x.size();
 		std::uninitialized_copy(x._begin, x._end, _begin);
-		//construct_range_with_range(_begin, _end, x._begin, x._end);
 
 		return *this;
 	};
@@ -143,7 +154,8 @@ public:
 				size_type new_size = (n > capacity() * 2) ? n : capacity() * 2;
 				reserve(new_size);
 			}
-			construct_range_with_value(_end, _begin + n, val);
+			std::uninitialized_fill(_end, _begin + n, val);
+			//construct_range_with_value(_end, _begin + n, val);
 		}
 		else if (n < size())
 			destroy_range(_begin + n, _end);
@@ -159,9 +171,6 @@ public:
 		if (n <= capacity())
 			return;
 
-		// resize는 할당 + 초기화까지 같이 시켜줌
-		// reserve는 할당만 하고 초기화는 하지 않음.
-		// 즉, 둘은 다른 연산임.
 		append(n);
 	};
 	// ==========================================================================================
@@ -197,68 +206,32 @@ public:
 	void assign(typename ft::enable_if<!ft::is_integral<InputIterator>::value, InputIterator>::type first,
 					InputIterator last)
 	{
+		// distance를 바로 구하지 않고 다른 방법있나????
+		// insert를 호출할까?
 		size_type n = std::distance(first, last);
-
-		// destroy current data
 		clear();
-
-		// deallocate & reallocate
 		if (capacity() < n)
-		{
-			size_type new_size = (capacity() * 2 < n) ? n : capacity() * 2;
-			reserve(new_size);
-		}
-
-		// construct with value
-		//construct_range_with_range(_begin, _begin + n, first.base(), last.base());
+			reserve(__recommend(n));
 		std::uninitialized_copy(first, last, _begin);
 		_end += n;
 	};
 	void assign(size_type n, const value_type &val)
 	{
-		// destroy current data
 		clear();
-
-		// deallocate & reallocate
 		if (capacity() < n)
-		{
-			size_type new_size = (capacity() * 2 < n) ? n : capacity() * 2;
-			reserve(new_size);
-		}
-
-		// construct with value
-		construct_range_with_value(_begin, _begin + n, val);
+			reserve(__recommend(n));
+		std::uninitialized_fill(_begin, _begin + n, val);
 		_end += n;
 	};
-
 	void push_back(const value_type &val) { insert(_end, val); };
-	// empty에서 호출하는건 정의되지않은 행동이다.
 	void pop_back() { _alloc.destroy(--_end); };
-
-protected:
-	//  Precondition:  __new_size > capacity()
-	size_type __recommend(size_type __new_size) const
-	{
-		const size_type __ms = max_size();
-		// max_size()이상의 재할당은 불가능
-		if (__new_size > __ms)
-			throw std::length_error("vector");
-		const size_type __cap = capacity();
-		// 현 용량의 2배가 max_size()를 넘어가면 max_size()로 할당한다.
-		if (__cap >= __ms / 2)
-			return __ms;
-		// 현재용량의 2배와 __new_size중 더 큰 값으로 재할당한다.
-		return std::max(2*__cap, __new_size);
-	}
-
-public:
 	iterator insert(iterator position, const value_type &val)
 	{
 		difference_type len = position.base() - _begin;
 		// ㅌㅔ스트기마다 기준다름.
 		if (_end == _end_cap)
 			reserve(__recommend(capacity() + 1));
-		//reserve(capacity() * 2 + (capacity() == 0));
+		//reserve(__recommend(capacity() + 1));
 
 		// pos ~ end 를 우측으로 n 이동하여 construct.
 		pointer end = _end;
@@ -278,14 +251,9 @@ public:
 	void insert(iterator position, size_type n, const value_type &val)
 	{
 		difference_type len = position - begin();
-		if (size() + n > capacity())
-		{
-			// size_t newCapacity = capacity();
-			// while(newCapacity < n + size())
-			// 	newCapacity *= 2;
-			// reserve(newCapacity);
-			reserve(__recommend(size() + n));
-		}
+		// if (size() + n > capacity())
+		// 	reserve(__recommend(size() + n));
+		reserve(__recommend(size() + n));
 
 		// pos ~ end 를 우측으로 n 이동하여 construct.
 		pointer pos = _begin + len;
@@ -324,35 +292,39 @@ public:
 						!ft::is_integral<InputIterator>::value, InputIterator
 					>::type first, InputIterator last)
 	{
-		iterator it = position;
-		for(; first != last; ++first)
-			position = insert(position, *first) + 1;
+		difference_type len = position - begin();
+		//size_type n = std::distance(first, last);
+		try
+		{
+			vector copy(first, last);
 
-		// difference_type len = position - begin();
-		// size_type n = std::distance(first, last);
-		// try
-		// {
-		// 	vector copy(first, last);
+			// if type not match, this code will blow this function.
+			// vector x(1);
+			// std::uninitialized_copy(copy.begin(), copy.end(), x.begin());
+			// _alloc.construct(it.base(),  *copy.begin());
+			//*it = copy.begin();
 
-		// 	if (size() + n > capacity())
-		// 		reserve(__recommend(size() + n));
-		// 	// pos ~ end 를 우측으로 n 이동하여 construct.
-		// 	pointer pos = _begin + len;
-		// 	pointer end = _end;
-		// 	while(end != pos)
-		// 	{
-		// 		--end;
-		// 		_alloc.construct(end + n, *end);
-		// 		_alloc.destroy(end);
-		// 	}
-		// 	std::uninitialized_copy(copy.begin(), copy.end(), pos);
-		// 	_end = _end + n;
-		// }
-		// catch(...)
-		// {
-		// 	//std::cout << "ERROR WHILE VECTOR(RANGE)" << std::endl;
-		// 	throw;
-		// }
+			size_type n = copy.size();
+			// if (size() + n > capacity())
+			// 	reserve(__recommend(size() + n));
+			reserve(__recommend(size() + n));
+
+			// pos ~ end 를 우측으로 n 이동하여 construct.
+			pointer pos = _begin + len;
+			pointer end = _end;
+			while(end != pos)
+			{
+				--end;
+				_alloc.construct(end + n, *end);
+				_alloc.destroy(end);
+			}
+			std::uninitialized_copy(copy.begin(), copy.end(), pos);
+			_end = _end + n;
+		}
+		catch(...)
+		{
+			throw;
+		}
 	};
 
 	iterator erase(iterator position)
@@ -427,25 +399,6 @@ public:
 		_end_cap = new_end_cap;
 	};
 
-	// b~e구간을 val값으로 초기화한다.
-	void construct_range_with_value(pointer b, pointer e, value_type val = value_type())
-	{
-		for (; b != e; b++)
-		{
-			_alloc.construct(b, val);
-		}
-	};
-	// b~e구간을 srcb~srce 구간의 값으로 복사한다.
-	void copy_range_with_range(pointer b, pointer e, pointer srcb,
-								pointer srce)
-	{
-		if (e - b != srce - srcb)
-		{
-			std::cerr << "Something's wrong with consturct_range_with_range()" << std::endl;
-		}
-		for (; b != e; b++)
-			*b = *srcb++;
-	};
 	void destroy_range(pointer b, pointer e)
 	{
 		if (b == e)
